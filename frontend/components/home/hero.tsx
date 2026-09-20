@@ -2,15 +2,17 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, MessageCircle, Sparkles, Zap, Shield } from "lucide-react"
+import { ArrowRight, MessageCircle, Sparkles, Zap, Shield, ChevronLeft, ChevronRight } from "lucide-react"
 import { site, whatsappLink } from "@/lib/site"
 import { motion, AnimatePresence } from "motion/react"
 import { useEffect, useState, useCallback } from "react"
-import type { ProductView } from "@/lib/products"
+import type { ProductView } from "@/lib/product-types"
 
 const SLIDES = [
   {
     id: "laptops",
+    num: "01",
+    label: "Laptops",
     image: "/images/pc with laptop.png",
     badge: { icon: <Sparkles className="size-3.5" />, text: "Fresh Stock" },
     headline: "Laptops You Can Trust at Prices That Make Sense",
@@ -25,6 +27,8 @@ const SLIDES = [
   },
   {
     id: "computers",
+    num: "02",
+    label: "Computers",
     image: "/images/cmputers.png",
     badge: { icon: <Zap className="size-3.5" />, text: "Power Builds" },
     headline: "Desktops Monitors and Gear for Every Setup",
@@ -39,6 +43,8 @@ const SLIDES = [
   },
   {
     id: "accessories",
+    num: "03",
+    label: "Accessories",
     image: "/images/accessories.png",
     badge: { icon: <Shield className="size-3.5" />, text: "Genuine Parts" },
     headline: "Accessories Built to Last and Priced Right",
@@ -85,17 +91,14 @@ function HighlightedHeadline({ text, highlight, delay = 0 }: { text: string; hig
 
 export function Hero({ highlight }: { highlight: ProductView | null }) {
   const [current, setCurrent] = useState(0)
-  const [direction, setDirection] = useState<"forward" | "backward">("forward")
 
   const slideCount = SLIDES.length
 
   const nextSlide = useCallback(() => {
-    setDirection("forward")
     setCurrent((c) => (c + 1) % slideCount)
   }, [slideCount])
 
   const prevSlide = useCallback(() => {
-    setDirection("backward")
     setCurrent((c) => (c - 1 + slideCount) % slideCount)
   }, [slideCount])
 
@@ -107,21 +110,21 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
   const slide = SLIDES[current]
 
   return (
-    <section className="relative isolate h-[92vh] min-h-[560px] max-h-[820px] overflow-hidden">
-      {/* Full background image with slide transition */}
+    <section className="relative isolate h-[92vh] min-h-[560px] max-h-[820px] overflow-hidden bg-black select-none">
+      {/* Background slide transition */}
       <div className="absolute inset-0">
         <AnimatePresence initial={false}>
           <motion.div
             key={slide.id}
             className="absolute inset-0"
-            initial={{ opacity: 0, scale: 1.08 }}
+            initial={{ opacity: 0, scale: 1.06 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.08 }}
-            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, scale: 1.06 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
             <Image
               src={slide.image}
-              alt={slide.id === "laptops" ? "Laptops at Dani Brothers" : slide.id}
+              alt={slide.headline}
               fill
               priority={current === 0}
               className="object-cover object-center"
@@ -131,36 +134,101 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
         </AnimatePresence>
       </div>
 
-      {/* Dark gradient overlay — stronger at bottom for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/25 pointer-events-none" />
 
-      {/* Grid pattern — subtle depth */}
-      <div
-        className="absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "60px 60px",
-        }}
-      />
+      {/* ── ULTRA-LUXURY CIRCULAR PROGRESS CONTROLS (Top Right) ── */}
+      <div className="absolute top-7 right-6 sm:right-10 z-30 flex items-center gap-3">
+        <div className="flex items-center gap-2.5 rounded-full bg-black/40 p-1.5 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+          {SLIDES.map((item, i) => {
+            const isActive = i === current
+            const size = 46
+            const strokeWidth = 2
+            const radius = (size - strokeWidth) / 2
+            const circumference = 2 * Math.PI * radius
 
-      {/* Slide dots — top center */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-        {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              setDirection(i > current ? "forward" : "backward")
-              setCurrent(i)
-            }}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              i === current
-                ? "bg-brand w-10 shadow-lg shadow-brand/30"
-                : "bg-white/20 hover:bg-white/40 w-5"
-            }`}
-            aria-label={`Go to slide ${i + 1}`}
-          />
-        ))}
+            return (
+              <button
+                key={item.id}
+                onClick={() => setCurrent(i)}
+                className="group relative flex items-center gap-2.5 rounded-full transition-all duration-500 focus:outline-none"
+                aria-label={`Go to slide ${i + 1}: ${item.label}`}
+              >
+                {/* Active Pill Extension with Label */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeLuxuryCapsule"
+                    className="absolute inset-0 rounded-full bg-white/[0.08] border border-white/15 backdrop-blur-xl"
+                    transition={{ type: "spring", stiffness: 350, damping: 32 }}
+                  />
+                )}
+
+                <div
+                  className="relative flex items-center justify-center rounded-full"
+                  style={{ width: size, height: size }}
+                >
+                  {/* Luxury SVG Ring */}
+                  <svg
+                    width={size}
+                    height={size}
+                    className="absolute inset-0 -rotate-90 pointer-events-none"
+                  >
+                    {/* Hair-thin track ring */}
+                    <circle
+                      cx={size / 2}
+                      cy={size / 2}
+                      r={radius}
+                      stroke="rgba(255,255,255,0.1)"
+                      strokeWidth={strokeWidth}
+                      fill="transparent"
+                    />
+
+                    {/* Precision Laser Process Ring */}
+                    {isActive && (
+                      <motion.circle
+                        key={current}
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={radius}
+                        stroke="#ffffff"
+                        strokeWidth={strokeWidth}
+                        fill="transparent"
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset: 0 }}
+                        transition={{ duration: 6, ease: "linear" }}
+                        strokeLinecap="round"
+                        className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                      />
+                    )}
+                  </svg>
+
+                  {/* Clean Swiss-style Number */}
+                  <span
+                    className={`relative z-10 font-mono text-xs font-semibold tracking-wider transition-colors duration-300 ${
+                      isActive ? "text-white" : "text-white/35 group-hover:text-white/70"
+                    }`}
+                  >
+                    {item.num}
+                  </span>
+                </div>
+
+                {/* Subdued Category Label when active */}
+                {isActive && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -6 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className="pr-4 text-[0.72rem] font-medium tracking-wide uppercase text-white/90 hidden md:inline-block select-none"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Content — bottom left */}
@@ -172,32 +240,32 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4 }}
             >
               {/* Badge */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.5 }}
-                className="mb-5"
+                transition={{ delay: 0.1, duration: 0.4 }}
+                className="mb-4"
               >
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 px-4 py-2 text-xs font-medium text-white/80">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 px-4 py-1.5 text-xs font-medium text-white/80">
                   <span className="text-brand">{slide.badge.icon}</span>
                   {slide.badge.text}
                 </span>
               </motion.div>
 
               {/* Headline with word-by-word animation */}
-              <h1 className="text-[clamp(2rem,5vw,3.25rem)] font-bold leading-[1.1] tracking-tight text-balance">
-                <HighlightedHeadline text={slide.headline} highlight={slide.highlight} delay={0.2} />
+              <h1 className="text-[clamp(2rem,4.8vw,3.25rem)] font-bold leading-[1.12] tracking-tight text-balance">
+                <HighlightedHeadline text={slide.headline} highlight={slide.highlight} delay={0.15} />
               </h1>
 
               {/* Subheading */}
               <motion.p
-                className="mt-4 max-w-sm text-sm leading-relaxed text-white/55"
-                initial={{ opacity: 0, y: 15 }}
+                className="mt-4 max-w-md text-sm sm:text-base leading-relaxed text-white/60"
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.6 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
               >
                 {slide.subhead}
               </motion.p>
@@ -208,10 +276,10 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
           <AnimatePresence mode="wait">
             <motion.div
               key={`ctas-${slide.id}`}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
               className="mt-6 sm:mt-7 flex flex-col sm:flex-row gap-2.5 sm:gap-3"
             >
               <Link
@@ -235,51 +303,39 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
           </AnimatePresence>
 
           {/* Stats strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            className="mt-6 sm:mt-8 grid grid-cols-2 gap-x-8 gap-y-4 sm:gap-x-6 sm:gap-y-3 sm:flex sm:flex-wrap border-t border-white/10 pt-5 sm:pt-6"
-          >
+          <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-x-8 gap-y-4 sm:gap-x-6 sm:gap-y-3 sm:flex sm:flex-wrap border-t border-white/10 pt-5 sm:pt-6">
             {[
               { value: `Since ${site.since}`, label: "Trusted in Karachi" },
               { value: "6-month", label: "Warranty" },
               { value: "Nationwide", label: "Delivery" },
               { value: "COD", label: "Available" },
-            ].map(({ value, label }, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 + i * 0.1, duration: 0.5 }}
-              >
+            ].map(({ value, label }) => (
+              <div key={label}>
                 <p className="text-xs sm:text-sm font-semibold text-white">{value}</p>
                 <p className="text-[0.65rem] sm:text-[0.7rem] text-white/40">{label}</p>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows (Minimal & Sleek) */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-white/60 transition-all hover:bg-white/10 hover:text-white"
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white/70 transition-all hover:bg-black/60 hover:text-white active:scale-95"
         aria-label="Previous slide"
       >
-        <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
+        <ChevronLeft className="size-5" />
       </button>
+
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/5 backdrop-blur-sm border border-white/10 text-white/60 transition-all hover:bg-white/10 hover:text-white"
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white/70 transition-all hover:bg-black/60 hover:text-white active:scale-95"
         aria-label="Next slide"
       >
-        <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <ChevronRight className="size-5" />
       </button>
     </section>
   )
 }
+

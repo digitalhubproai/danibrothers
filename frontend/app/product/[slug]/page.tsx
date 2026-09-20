@@ -18,6 +18,9 @@ import { ProductGallery } from "@/components/product/gallery"
 import { BuyBox } from "@/components/product/buy-box"
 import { ConditionBadge } from "@/components/product/condition-badge"
 import { ProductGrid } from "@/components/product/product-card"
+import { CompareSection } from "@/components/product/compare-section"
+import { ReviewSection } from "@/components/product/review-section"
+import { TrackView } from "@/components/product/track-view"
 import { Section, SectionHeading } from "@/components/site/section"
 import { getProductBySlug, getRelatedProducts, stockState } from "@/lib/products"
 import { CONDITION_DESCRIPTION, FREE_SHIPPING_THRESHOLD, site, whatsappLink, type Condition } from "@/lib/site"
@@ -73,6 +76,8 @@ export default async function ProductPage({
 
   return (
     <>
+      <TrackView product={product} />
+
       {/* Breadcrumb */}
       <div className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
         <nav
@@ -162,10 +167,13 @@ export default async function ProductPage({
             <span className={cn(
               "size-1.5 rounded-full",
               stock.tone === "success" && "bg-emerald-500",
-              stock.tone === "warning" && "bg-amber-500",
+              stock.tone === "warning" && "bg-amber-500 animate-pulse",
               stock.tone === "destructive" && "bg-red-500",
             )} />
             {stock.label}
+            {stock.tone === "warning" && (
+              <span className="text-amber-500/80">— order soon!</span>
+            )}
           </div>
 
           {/* Description */}
@@ -306,6 +314,18 @@ export default async function ProductPage({
           </aside>
         </div>
       </Section>
+
+      {/* Reviews */}
+      <Section className="pt-4">
+        <ReviewSection productId={product.id} />
+      </Section>
+
+      {/* Compare section */}
+      {related.length > 0 && (
+        <Section className="pt-4">
+          <CompareSection product={product} related={related} />
+        </Section>
+      )}
 
       {/* Related products */}
       {related.length > 0 && (

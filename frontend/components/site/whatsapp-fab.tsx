@@ -1,17 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion, AnimatePresence } from "motion/react"
 import { MessageCircle, X } from "lucide-react"
 import { site, whatsappLink } from "@/lib/site"
-import { cn } from "@/lib/utils"
 
-/**
- * Floating WhatsApp button. Most of this shop's real orders start as a
- * WhatsApp message, so the channel stays one tap away on every page.
- *
- * It tucks itself away while the user is scrolled to the very top of short
- * pages to avoid covering content, then appears once they engage.
- */
 export function WhatsAppFab() {
   const [visible, setVisible] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -26,31 +19,40 @@ export function WhatsAppFab() {
   if (dismissed) return null
 
   return (
-    <div
-      className={cn(
-        "fixed bottom-5 right-5 z-30 transition-all duration-300",
-        visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0",
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="fixed bottom-5 right-5 z-30"
+        >
+          <div className="relative">
+            {/* Pulse ring */}
+            <span className="absolute inset-0 -m-1 animate-ping rounded-full bg-[#25D366]/30" />
+
+            <a
+              href={whatsappLink(`Hi ${site.name}, I'd like to ask about a product.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#25D366]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#25D366]/40"
+            >
+              <MessageCircle className="size-4" />
+              WhatsApp
+            </a>
+
+            <button
+              type="button"
+              onClick={() => setDismissed(true)}
+              aria-label="Hide WhatsApp button"
+              className="absolute -left-2 -top-2 grid size-5 place-items-center rounded-full bg-muted text-muted-foreground shadow-sm transition-colors hover:bg-destructive hover:text-white"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        </motion.div>
       )}
-    >
-      <div className="flex items-center gap-1.5 rounded-full border border-border bg-card p-1.5 shadow-lg">
-        <a
-          href={whatsappLink(`Hi ${site.name}, I'd like to ask about a product.`)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-full bg-[#25D366] px-3.5 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
-        >
-          <MessageCircle className="size-4" />
-          WhatsApp
-        </a>
-        <button
-          type="button"
-          onClick={() => setDismissed(true)}
-          aria-label="Hide WhatsApp button"
-          className="grid size-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        >
-          <X className="size-3.5" />
-        </button>
-      </div>
-    </div>
+    </AnimatePresence>
   )
 }

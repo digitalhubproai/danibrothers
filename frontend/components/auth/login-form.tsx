@@ -60,7 +60,7 @@ export function LoginForm({ next }: { next: string }) {
         {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
       </div>
 
-      <Button type="submit" size="lg" className="mt-1 h-11 w-full text-sm" disabled={pending}>
+      <Button type="submit" size="lg" className="mt-1 w-full" disabled={pending}>
         {pending && <Loader2 className="animate-spin" />}
         Sign in
       </Button>

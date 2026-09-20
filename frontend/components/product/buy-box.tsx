@@ -92,14 +92,12 @@ export function BuyBox({ product }: { product: BuyBoxProduct }) {
           disabled={soldOut}
           onClick={handleAdd}
           className={cn(
-            "h-12 flex-1 px-6 text-sm font-semibold rounded-xl transition-all duration-300 sm:flex-none sm:min-w-[12rem]",
-            added
-              ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-              : "bg-brand text-white hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/25",
+            "h-12 flex-1 px-6 sm:flex-none sm:min-w-[12rem]",
+            added && "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/10 hover:shadow-none hover:translate-y-0",
           )}
         >
           {added ? <Check className="size-4" /> : <ShoppingBag className="size-4" />}
-          {soldOut ? "Out of stock" : added ? "Added to cart" : "Add to cart"}
+          {soldOut ? "Out of stock" : added ? "Added!" : "Add to cart"}
         </Button>
       </div>
 

@@ -1,19 +1,14 @@
 import type { Category, Prisma, Product } from "@prisma/client"
 import { prisma } from "@/lib/db"
 import type { SortKey } from "@/lib/sort-options"
+import type { Spec, ProductView } from "@/lib/product-types"
 
 // Re-exported for server-side callers. Client components must import these
 // from `@/lib/sort-options` directly — see the note in that file.
 export { SORT_OPTIONS, type SortKey } from "@/lib/sort-options"
 
-export type Spec = { label: string; value: string }
-
-export type ProductView = Omit<Product, "images" | "specs"> & {
-  images: string[]
-  specs: Spec[]
-  category: Pick<Category, "id" | "name" | "slug"> | null
-  primaryImage: string | null
-}
+export type { Spec, ProductView } from "@/lib/product-types"
+export { stockState } from "@/lib/product-types"
 
 /**
  * `images` and `specs` are JSON strings in SQLite (no JSON column type). A
@@ -194,14 +189,4 @@ export async function getPriceBounds(): Promise<{ min: number; max: number }> {
 export async function getProductSlugs(): Promise<string[]> {
   const rows = await prisma.product.findMany({ select: { slug: true } })
   return rows.map((r) => r.slug)
-}
-
-/** Stock label + tone, shared by the card, the PDP and the admin table. */
-export function stockState(stock: number): {
-  label: string
-  tone: "success" | "warning" | "destructive"
-} {
-  if (stock <= 0) return { label: "Out of stock", tone: "destructive" }
-  if (stock <= 3) return { label: `Only ${stock} left`, tone: "warning" }
-  return { label: "In stock", tone: "success" }
 }

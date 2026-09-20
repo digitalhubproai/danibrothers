@@ -61,11 +61,13 @@ export function ShopToolbar({
             <SlidersHorizontal />
             Filters
           </SheetTrigger>
-          <SheetContent side="left" className="w-[19rem] overflow-y-auto p-5">
-            <SheetHeader className="mb-5 p-0">
+          <SheetContent side="left" className="w-[18rem] overflow-y-auto p-0">
+            <SheetHeader className="p-5 pb-0">
               <SheetTitle>Filters</SheetTitle>
             </SheetHeader>
-            <ShopFilters facets={facets} />
+            <div className="p-5">
+              <ShopFilters facets={facets} />
+            </div>
           </SheetContent>
         </Sheet>
 

@@ -19,14 +19,17 @@ import {
   Cpu,
   Cable,
   PcCase,
-  X,
   Package,
+  Heart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Logo } from "@/components/site/logo"
+import { SearchAutocomplete } from "@/components/site/search-autocomplete"
+import { ThemeToggle } from "@/components/site/theme-toggle"
 import { useCartCount } from "@/components/site/use-cart-count"
 import { useCart } from "@/lib/cart"
+import { useWishlist } from "@/lib/wishlist"
 import { cn } from "@/lib/utils"
 import { site, whatsappLink, FREE_SHIPPING_THRESHOLD } from "@/lib/site"
 import { formatPrice } from "@/lib/format"
@@ -61,12 +64,12 @@ export function SiteHeader({
   const pathname = usePathname()
   const cartCount = useCartCount()
   const openCart = useCart((s) => s.open)
+  const wishlistCount = useWishlist((s) => s.items.length)
 
   const [scrolled, setScrolled] = useState(false)
   const [shopOpen, setShopOpen] = useState(false)
   const [shopMounted, setShopMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [query, setQuery] = useState("")
   const shopRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -194,16 +197,7 @@ export function SiteHeader({
           </nav>
 
           <div className="ml-auto flex items-center gap-1">
-            <SearchForm query={query} setQuery={setQuery} className="hidden md:flex" />
-
-            {/* Phone CTA */}
-            <a
-              href={site.phoneHref}
-              className="hidden h-9 items-center gap-2 rounded-lg bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-600 transition-all duration-300 hover:bg-emerald-500/20 hover:shadow-sm md:inline-flex"
-            >
-              <Phone className="size-3.5" />
-              <span className="hidden xl:inline">{site.phone}</span>
-            </a>
+            <SearchAutocomplete className="hidden md:flex" />
 
             <Button
               variant="ghost"
@@ -215,6 +209,25 @@ export function SiteHeader({
               }
             >
               <User />
+            </Button>
+
+            <ThemeToggle className="hidden md:grid" />
+
+            <Button
+              variant="ghost"
+              size="icon"
+              nativeButton={false}
+              render={
+                <Link href="/wishlist" aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ""}`} />
+              }
+              className="relative"
+            >
+              <Heart />
+              {wishlistCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 grid min-w-[1.125rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[0.625rem] font-bold leading-4 text-white tnum shadow-lg shadow-red-500/25">
+                  {wishlistCount > 99 ? "99+" : wishlistCount}
+                </span>
+              )}
             </Button>
 
             <Button
@@ -255,7 +268,7 @@ export function SiteHeader({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4">
-                  <SearchForm query={query} setQuery={setQuery} className="mb-5 md:hidden" />
+                  <SearchAutocomplete className="mb-5 md:hidden" />
 
                   <p className="mb-3 text-[0.65rem] font-bold tracking-[0.14em] text-muted-foreground/60 uppercase">
                     Shop by category
@@ -304,6 +317,18 @@ export function SiteHeader({
                       <User className="size-3.5 shrink-0 text-muted-foreground/60" />
                       {user ? "My account" : "Sign in"}
                     </Link>
+                    <Link
+                      href="/wishlist"
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+                    >
+                      <Heart className="size-3.5 shrink-0 text-muted-foreground/60" />
+                      Wishlist
+                      {wishlistCount > 0 && (
+                        <span className="ml-auto grid min-w-[1.125rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[0.6rem] font-bold text-white">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </Link>
                   </div>
                 </div>
               </SheetContent>
@@ -312,49 +337,6 @@ export function SiteHeader({
         </div>
       </header>
     </>
-  )
-}
-
-function SearchForm({
-  query,
-  setQuery,
-  className,
-}: {
-  query: string
-  setQuery: (value: string) => void
-  className?: string
-}) {
-  const [focused, setFocused] = useState(false)
-
-  return (
-    <form
-      action="/shop"
-      className={cn("relative items-center", className)}
-      role="search"
-      onSubmit={() => setQuery("")}
-    >
-      <div
-        className={cn(
-          "relative flex items-center rounded-xl border transition-all duration-300",
-          focused
-            ? "border-brand/40 ring-3 ring-brand/10 bg-card shadow-sm"
-            : "border-border bg-muted/40 hover:bg-muted/60",
-        )}
-      >
-        <Search className="pointer-events-none ml-3 size-4 text-muted-foreground/60" />
-        <input
-          type="search"
-          name="q"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          placeholder="Search products…"
-          aria-label="Search products"
-          className="h-9 w-48 bg-transparent pl-2.5 pr-3 text-sm outline-none placeholder:text-muted-foreground xl:w-64"
-        />
-      </div>
-    </form>
   )
 }
 

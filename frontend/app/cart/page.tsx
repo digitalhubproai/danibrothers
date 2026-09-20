@@ -194,7 +194,7 @@ export default function CartPage() {
               </span>
             </div>
 
-            <Button size="lg" className="mt-5 h-11 w-full text-sm" nativeButton={false} render={<Link href="/checkout" />}>
+            <Button size="lg" className="mt-5 w-full" nativeButton={false} render={<Link href="/checkout" />}>
               Checkout
               <ArrowRight />
             </Button>

@@ -3,7 +3,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { PackageSearch } from "lucide-react"
 import { ShopFilters } from "@/components/product/shop-filters"
-import { ProductGrid } from "@/components/product/product-card"
+import { InfiniteProductGrid } from "@/components/product/infinite-product-grid"
 import { ShopToolbar } from "@/components/product/shop-toolbar"
 import { Button } from "@/components/ui/button"
 import {
@@ -104,9 +104,11 @@ export default async function ShopPage({
       </div>
 
       <div className="container-page grid gap-8 py-8 lg:grid-cols-[16rem_1fr] lg:gap-10 lg:py-10">
-        {/* Below lg the same filters live in a sheet, opened from the toolbar. */}
+        {/* Sidebar filters */}
         <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
-          <ShopFilters facets={{ categories: facets, brands: brands_, priceBounds }} />
+          <div className="rounded-xl border border-border bg-card p-4">
+            <ShopFilters facets={{ categories: facets, brands: brands_, priceBounds }} />
+          </div>
         </aside>
 
         <div className="min-w-0">
@@ -131,14 +133,22 @@ export default async function ShopPage({
               </Button>
             </div>
           ) : (
-            <>
-              <div className="mt-6">
-                <ProductGrid products={products} priorityCount={4} />
-              </div>
-              {pageCount > 1 && (
-                <Pagination page={page} pageCount={pageCount} params={sp} />
-              )}
-            </>
+            <div className="mt-6">
+              <InfiniteProductGrid
+                initialProducts={products}
+                initialPage={page}
+                initialPageCount={pageCount}
+                searchParams={{
+                  ...(category ? { category } : {}),
+                  ...(q ? { q } : {}),
+                  ...(sort ? { sort } : {}),
+                  ...(brands.length ? { brand: brands[0] } : {}),
+                  ...(conditions.length ? { condition: conditions[0] } : {}),
+                  ...(minPrice != null ? { min: String(minPrice) } : {}),
+                  ...(maxPrice != null ? { max: String(maxPrice) } : {}),
+                }}
+              />
+            </div>
           )}
         </div>
       </div>

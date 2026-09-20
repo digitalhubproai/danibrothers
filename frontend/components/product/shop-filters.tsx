@@ -1,9 +1,9 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useTransition, type ReactNode } from "react"
-import { X, SlidersHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useCallback, useTransition, useState, type ReactNode } from "react"
+import { motion, AnimatePresence } from "motion/react"
+import { X, SlidersHorizontal, ChevronDown, RotateCcw } from "lucide-react"
 import { CONDITIONS, CONDITION_LABEL } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -13,14 +13,6 @@ export type ShopFacets = {
   priceBounds: { min: number; max: number }
 }
 
-/**
- * Filters are driven entirely by the URL. That makes a filtered list
- * shareable, bookmarkable and back-button friendly — and it means the whole
- * sidebar can be a plain GET form that still works with JavaScript disabled.
- *
- * The client component only adds the convenience of applying on change
- * without a full page reload.
- */
 export function ShopFilters({ facets }: { facets: ShopFacets }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -44,8 +36,6 @@ export function ShopFilters({ facets }: { facets: ShopFacets }) {
     (mutate: (params: URLSearchParams) => void) => {
       const params = new URLSearchParams(searchParams.toString())
       mutate(params)
-      // Any filter change resets pagination — page 3 of the old result set is
-      // meaningless once the result set changes.
       params.delete("page")
       startTransition(() => {
         router.push(params.toString() ? `/shop?${params}` : "/shop", { scroll: false })
@@ -73,61 +63,54 @@ export function ShopFilters({ facets }: { facets: ShopFacets }) {
   }
 
   return (
-    <form
-      className={cn("flex flex-col gap-6", isPending && "opacity-60 transition-opacity")}
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <div className="flex items-center justify-between">
-        <p className="flex items-center gap-2 text-sm font-semibold">
-          <SlidersHorizontal className="size-4" />
-          Filters
+    <div className={cn("flex flex-col gap-1", isPending && "opacity-50 pointer-events-none transition-opacity")}>
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="size-4 text-muted-foreground" />
+          <span className="text-sm font-semibold">Filters</span>
           {activeCount > 0 && (
-            <span className="grid size-5 place-items-center rounded-full bg-brand text-[0.625rem] font-semibold text-brand-foreground tnum">
+            <span className="grid size-5 place-items-center rounded-full bg-brand text-[0.6rem] font-bold text-white tnum">
               {activeCount}
             </span>
           )}
-        </p>
+        </div>
         {activeCount > 0 && (
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
             onClick={() => startTransition(() => router.push("/shop", { scroll: false }))}
-            className="text-muted-foreground"
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
           >
-            <X />
-            Clear
-          </Button>
+            Clear all
+          </button>
         )}
       </div>
 
-      <FilterGroup title="Category">
+      {/* Category */}
+      <FilterSection title="Category">
         <div className="flex flex-col gap-0.5">
-          <FilterRow
-            label="All categories"
+          <RadioRow
+            label="All Categories"
             checked={!current.category}
             onChange={() => setSingle("category", "")}
-            type="radio"
-            name="category"
           />
-          {facets.categories.map((category) => (
-            <FilterRow
-              key={category.slug}
-              label={category.name}
-              count={category.productCount}
-              type="radio"
-              name="category"
-              checked={current.category === category.slug}
-              onChange={() => setSingle("category", category.slug)}
+          {facets.categories.map((cat) => (
+            <RadioRow
+              key={cat.slug}
+              label={cat.name}
+              count={cat.productCount}
+              checked={current.category === cat.slug}
+              onChange={() => setSingle("category", cat.slug)}
             />
           ))}
         </div>
-      </FilterGroup>
+      </FilterSection>
 
-      <FilterGroup title="Condition">
+      {/* Condition */}
+      <FilterSection title="Condition">
         <div className="flex flex-col gap-0.5">
           {CONDITIONS.map((condition) => (
-            <FilterRow
+            <CheckRow
               key={condition}
               label={CONDITION_LABEL[condition]}
               checked={current.conditions.includes(condition)}
@@ -135,12 +118,13 @@ export function ShopFilters({ facets }: { facets: ShopFacets }) {
             />
           ))}
         </div>
-      </FilterGroup>
+      </FilterSection>
 
-      <FilterGroup title="Brand">
-        <div className="flex max-h-56 flex-col gap-0.5 overflow-y-auto pr-1">
+      {/* Brand */}
+      <FilterSection title="Brand">
+        <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto">
           {facets.brands.map((brand) => (
-            <FilterRow
+            <CheckRow
               key={brand}
               label={brand}
               checked={current.brands.includes(brand)}
@@ -148,72 +132,140 @@ export function ShopFilters({ facets }: { facets: ShopFacets }) {
             />
           ))}
         </div>
-      </FilterGroup>
+      </FilterSection>
 
-      <FilterGroup title="Price (Rs)">
+      {/* Price */}
+      <FilterSection title="Price (Rs)">
         <div className="flex items-center gap-2">
           <input
             type="number"
             inputMode="numeric"
-            placeholder={String(facets.priceBounds.min)}
+            placeholder="Min"
             defaultValue={current.min}
             aria-label="Minimum price"
             onBlur={(e) => setSingle("min", e.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none tnum focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none tnum transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
           <span className="text-muted-foreground">–</span>
           <input
             type="number"
             inputMode="numeric"
-            placeholder={String(facets.priceBounds.max)}
+            placeholder="Max"
             defaultValue={current.max}
             aria-label="Maximum price"
             onBlur={(e) => setSingle("max", e.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none tnum focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none tnum transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
         </div>
-      </FilterGroup>
-    </form>
+      </FilterSection>
+    </div>
   )
 }
 
-function FilterGroup({ title, children }: { title: string; children: ReactNode }) {
+/* ── Collapsible section ────────────────────────────────────── */
+
+function FilterSection({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string
+  children: ReactNode
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
   return (
-    <fieldset className="border-t border-border pt-4 first:border-0 first:pt-0">
-      <legend className="text-eyebrow mb-3 text-muted-foreground">{title}</legend>
-      {children}
-    </fieldset>
+    <div className="border-b border-border py-3 last:border-0">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between text-sm font-medium hover:text-brand transition-colors"
+      >
+        {title}
+        <motion.span
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="size-4 text-muted-foreground" />
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
-function FilterRow({
+/* ── Radio row ──────────────────────────────────────────────── */
+
+function RadioRow({
   label,
   count,
   checked,
   onChange,
-  type = "checkbox",
-  name,
 }: {
   label: string
   count?: number
   checked: boolean
   onChange: () => void
-  type?: "checkbox" | "radio"
-  name?: string
 }) {
   return (
-    <label className="-mx-2 flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent">
-      <input
-        type={type}
-        name={name}
-        checked={checked}
-        onChange={onChange}
-        className="size-4 shrink-0 accent-[var(--brand)]"
-      />
-      <span className="flex-1 truncate">{label}</span>
+    <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent">
+      <span
+        className={cn(
+          "flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+          checked ? "border-brand" : "border-muted-foreground/40",
+        )}
+      >
+        {checked && <span className="size-2 rounded-full bg-brand" />}
+      </span>
+      <span className={cn("flex-1", checked && "font-medium")}>{label}</span>
       {count != null && (
         <span className="text-xs text-muted-foreground tnum">{count}</span>
       )}
+    </label>
+  )
+}
+
+/* ── Checkbox row ───────────────────────────────────────────── */
+
+function CheckRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: () => void
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent">
+      <span
+        className={cn(
+          "flex size-4 shrink-0 items-center justify-center rounded border-2 transition-colors",
+          checked ? "border-brand bg-brand" : "border-muted-foreground/40",
+        )}
+      >
+        {checked && (
+          <svg className="size-3 text-white" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span className={cn("flex-1", checked && "font-medium")}>{label}</span>
     </label>
   )
 }

@@ -1,9 +1,12 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
+import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/sonner"
 import { SiteHeader } from "@/components/site/site-header"
 import { SiteFooter } from "@/components/site/site-footer"
 import { CartDrawer } from "@/components/site/cart-drawer"
+import { ScrollToTop } from "@/components/site/scroll-to-top"
+import { ServiceWorkerRegistration } from "@/components/site/sw-registration"
 import { WhatsAppFab } from "@/components/site/whatsapp-fab"
 import { site } from "@/lib/site"
 import { getCategories } from "@/lib/products"
@@ -53,6 +56,8 @@ export const metadata: Metadata = {
     description: site.description,
   },
   robots: { index: true, follow: true },
+  manifest: "/manifest.json",
+  themeColor: "#1d4ed8",
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -64,18 +69,21 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      // Next 16 no longer overrides `scroll-behavior` on navigation unless
-      // asked to; this opts back into the snappy in-page anchor scrolling.
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <SiteHeader categories={navCategories} user={user} />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-        <CartDrawer />
-        <WhatsAppFab />
-        <Toaster position="bottom-right" />
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <ServiceWorkerRegistration />
+          <SiteHeader categories={navCategories} user={user} />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+          <CartDrawer />
+          <ScrollToTop />
+          <WhatsAppFab />
+          <Toaster position="bottom-right" />
+        </ThemeProvider>
       </body>
     </html>
   )

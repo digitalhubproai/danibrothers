@@ -154,7 +154,7 @@ export function InquiryForm({ defaultType = "GENERAL" }: { defaultType?: Inquiry
         {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
       </div>
 
-      <Button type="submit" size="lg" className="h-11 w-full text-sm" disabled={pending}>
+      <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? <Loader2 className="animate-spin" /> : <Send />}
         {selling ? "Get a valuation" : "Send message"}
       </Button>

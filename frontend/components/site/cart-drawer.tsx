@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { useCartHydrated } from "@/components/site/use-cart-count"
@@ -96,7 +97,13 @@ export function CartDrawer() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => remove(line.productId)}
+                        onClick={() => {
+                          remove(line.productId)
+                          toast("Removed from cart", {
+                            description: line.name,
+                            duration: 2000,
+                          })
+                        }}
                         aria-label={`Remove ${line.name} from cart`}
                         className="-mr-1 -mt-1 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                       >

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Check, ShoppingBag } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart"
 import { cn } from "@/lib/utils"
@@ -53,6 +54,10 @@ export function AddToCartButton({
       qty,
     )
     setJustAdded(true)
+    toast.success("Added to cart", {
+      description: `${product.name}`,
+      duration: 2000,
+    })
     window.setTimeout(() => setJustAdded(false), 1600)
   }
 

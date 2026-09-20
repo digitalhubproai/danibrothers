@@ -77,7 +77,7 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
             Add something to your cart first, then come back here to checkout.
           </p>
           <Button
-            className="mt-6 rounded-xl bg-brand text-white hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/25"
+            className="mt-6"
             nativeButton={false}
             render={<Link href="/shop" />}
           >
@@ -324,9 +324,9 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
             {/* Place order button */}
             <Button
               type="submit"
-              size="lg"
+              size="xl"
               disabled={pending}
-              className="mt-6 h-13 w-full rounded-xl text-sm font-bold bg-brand text-white hover:bg-brand/90 hover:shadow-xl hover:shadow-brand/25 transition-all duration-300"
+              className="mt-6 w-full"
             >
               {pending ? (
                 <Loader2 className="size-4 animate-spin" />
