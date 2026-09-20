@@ -57,14 +57,14 @@ export function ProductCard({
         </div>
 
         {/* Condition badge */}
-        <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col items-start gap-1.5">
-          <ConditionBadge condition={product.condition} className="shadow-md backdrop-blur-sm" />
+        <div className="pointer-events-none absolute left-2 top-2 z-20">
+          <ConditionBadge condition={product.condition} className="shadow-md backdrop-blur-sm text-[0.6rem] px-1.5 py-0.5 sm:text-[0.6875rem] sm:px-1.5 sm:py-0.5" />
         </div>
 
         {/* Discount badge */}
         {discount > 0 && (
-          <span className="pointer-events-none absolute right-3 top-3 z-20 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 px-2.5 py-1 text-[0.7rem] font-bold text-white tnum shadow-lg">
-            −{discount}% OFF
+          <span className="pointer-events-none absolute right-2 top-2 z-20 rounded-md sm:rounded-lg bg-gradient-to-r from-red-500 to-orange-500 px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[0.6rem] sm:text-[0.7rem] font-bold text-white tnum shadow-lg">
+            −{discount}%
           </span>
         )}
       </div>
@@ -84,21 +84,21 @@ export function ProductCard({
         </h3>
 
         {/* Price section */}
-        <div className="mt-auto pt-4">
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-lg sm:text-xl font-bold tnum text-foreground">{formatPrice(product.price)}</span>
+        <div className="mt-auto pt-3 sm:pt-4">
+          <div className="flex items-baseline gap-1.5 sm:gap-2.5">
+            <span className="text-base sm:text-lg md:text-xl font-bold tnum text-foreground">{formatPrice(product.price)}</span>
             {product.compareAtPrice && discount > 0 && (
-              <span className="text-sm text-muted-foreground/60 line-through tnum">
+              <span className="text-[0.7rem] sm:text-sm text-muted-foreground/60 line-through tnum">
                 {formatPrice(product.compareAtPrice)}
               </span>
             )}
           </div>
 
           {/* Stock + Actions */}
-          <div className="mt-3 flex items-center justify-between gap-2 sm:gap-3">
+          <div className="mt-3 flex items-center justify-between gap-1.5 sm:gap-2">
             <span
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold",
+                "inline-flex items-center gap-1 sm:gap-1.5 rounded-full px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[0.6rem] sm:text-[0.65rem] font-semibold",
                 stock.tone === "success" && "bg-emerald-500/10 text-emerald-600",
                 stock.tone === "warning" && "bg-amber-500/10 text-amber-600",
                 stock.tone === "destructive" && "bg-red-500/10 text-red-600",
@@ -106,24 +106,25 @@ export function ProductCard({
             >
               <span
                 className={cn(
-                  "size-1.5 rounded-full",
+                  "size-1.5 rounded-full shrink-0",
                   stock.tone === "success" && "bg-emerald-500",
                   stock.tone === "warning" && "bg-amber-500",
                   stock.tone === "destructive" && "bg-red-500",
                 )}
               />
-              {stock.label}
+              <span className="hidden sm:inline">{stock.label}</span>
+              <span className="sm:hidden">{stock.label === "In Stock" ? "Avail" : stock.label}</span>
             </span>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               <a
                 href={whatsappLink(`Hi ${site.name}, I'm interested in the ${product.name}.`)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="grid size-8 place-items-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 transition-all duration-300 hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:shadow-sm"
+                className="grid size-7 sm:size-8 place-items-center rounded-md sm:rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 transition-all duration-300 hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:shadow-sm"
                 aria-label={`Ask about ${product.name} on WhatsApp`}
               >
-                <MessageCircle className="size-3.5" />
+                <MessageCircle className="size-3 sm:size-3.5" />
               </a>
               <AddToCartButton product={product} size="sm" compact />
             </div>
