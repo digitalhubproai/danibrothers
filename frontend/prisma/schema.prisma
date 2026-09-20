@@ -1,0 +1,119 @@
+// Dani Brothers — data layer.
+//
+// Note: SQLite has no native enum support, so fields like `condition`, `role`
+// and `status` are plain strings. The allowed values are documented inline and
+// enforced in `lib/validation.ts`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7: the connection URL lives in prisma.config.ts, not here.
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  role         String   @default("CUSTOMER") // CUSTOMER | ADMIN
+  createdAt    DateTime @default(now())
+  orders       Order[]
+
+  @@index([email])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String
+  icon        String    @default("laptop") // lucide icon name, resolved in components/home/category-grid
+  sortOrder   Int       @default(0)
+  products    Product[]
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  name           String
+  slug           String      @unique
+  brand          String
+  description    String
+  price          Int // PKR, whole rupees — no minor units in practice
+  compareAtPrice Int? // set for discounted / used stock
+  stock          Int         @default(0)
+  condition      String      @default("NEW") // NEW | REFURBISHED | USED
+  images         String      @default("[]") // JSON string[]
+  specs          String      @default("[]") // JSON {label, value}[]
+  featured       Boolean     @default(false)
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems     OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([brand])
+  @@index([featured])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName  String
+  phone         String
+  email         String?
+  address       String
+  city          String
+  notes         String?
+  paymentMethod String      @default("COD") // COD | BANK_TRANSFER
+  subtotal      Int
+  shipping      Int         @default(0)
+  total         Int
+  status        String      @default("PENDING") // PENDING | CONFIRMED | SHIPPED | DELIVERED | CANCELLED
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// Name/price/image are snapshotted so editing or deleting a product later
+// never rewrites a customer's order history.
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String
+  slug      String
+  image     String?
+  price     Int
+  qty       Int
+
+  @@index([orderId])
+}
+
+// Both the contact form and the "Sell Your Device" lead capture land here.
+model Inquiry {
+  id        String   @id @default(cuid())
+  type      String   @default("SELL_DEVICE") // SELL_DEVICE | GENERAL | REPAIR | BULK
+  name      String
+  phone     String
+  email     String?
+  device    String?
+  condition String?
+  message   String?
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([handled])
+}
