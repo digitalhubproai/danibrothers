@@ -212,11 +212,11 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-              className="mt-7 flex flex-wrap gap-3"
+              className="mt-6 sm:mt-7 flex flex-col sm:flex-row gap-2.5 sm:gap-3"
             >
               <Link
                 href={slide.ctaPrimary.href}
-                className="group inline-flex h-11 items-center gap-2.5 rounded-xl bg-brand px-6 text-sm font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/25 active:translate-y-px"
+                className="group inline-flex h-11 items-center justify-center gap-2.5 rounded-xl bg-brand px-5 sm:px-6 text-sm font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/25 active:translate-y-px"
               >
                 {slide.ctaPrimary.label}
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
@@ -226,7 +226,7 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
                 href={slide.ctaSecondary.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 text-sm font-semibold text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/25 active:translate-y-px"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 sm:px-6 text-sm font-semibold text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white/25 active:translate-y-px"
               >
                 {slide.ctaSecondary.icon}
                 {slide.ctaSecondary.label}
@@ -239,7 +239,7 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.6 }}
-            className="mt-8 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/10 pt-6"
+            className="mt-6 sm:mt-8 grid grid-cols-2 gap-x-8 gap-y-4 sm:gap-x-6 sm:gap-y-3 sm:flex sm:flex-wrap border-t border-white/10 pt-5 sm:pt-6"
           >
             {[
               { value: `Since ${site.since}`, label: "Trusted in Karachi" },
@@ -253,8 +253,8 @@ export function Hero({ highlight }: { highlight: ProductView | null }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.9 + i * 0.1, duration: 0.5 }}
               >
-                <p className="text-sm font-semibold text-white">{value}</p>
-                <p className="text-[0.7rem] text-white/40">{label}</p>
+                <p className="text-xs sm:text-sm font-semibold text-white">{value}</p>
+                <p className="text-[0.65rem] sm:text-[0.7rem] text-white/40">{label}</p>
               </motion.div>
             ))}
           </motion.div>

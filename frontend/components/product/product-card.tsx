@@ -4,8 +4,9 @@ import { AddToCartButton } from "@/components/product/add-to-cart"
 import { ProductThumb } from "@/components/product/product-thumb"
 import { discountPercent, formatPrice } from "@/lib/format"
 import { stockState, type ProductView } from "@/lib/products"
+import { whatsappLink, site } from "@/lib/site"
 import { cn } from "@/lib/utils"
-import { Eye } from "lucide-react"
+import { Eye, MessageCircle } from "lucide-react"
 
 export function ProductCard({
   product,
@@ -69,7 +70,7 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
+      <div className="flex flex-1 flex-col p-3 sm:p-4 md:p-5">
         {/* Brand */}
         <p className="text-[0.65rem] font-bold tracking-[0.12em] text-brand/70 uppercase">
           {product.brand}
@@ -85,7 +86,7 @@ export function ProductCard({
         {/* Price section */}
         <div className="mt-auto pt-4">
           <div className="flex items-baseline gap-2.5">
-            <span className="text-xl font-bold tnum text-foreground">{formatPrice(product.price)}</span>
+            <span className="text-lg sm:text-xl font-bold tnum text-foreground">{formatPrice(product.price)}</span>
             {product.compareAtPrice && discount > 0 && (
               <span className="text-sm text-muted-foreground/60 line-through tnum">
                 {formatPrice(product.compareAtPrice)}
@@ -93,8 +94,8 @@ export function ProductCard({
             )}
           </div>
 
-          {/* Stock + Add to cart */}
-          <div className="mt-3 flex items-center justify-between gap-3">
+          {/* Stock + Actions */}
+          <div className="mt-3 flex items-center justify-between gap-2 sm:gap-3">
             <span
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold",
@@ -114,7 +115,18 @@ export function ProductCard({
               {stock.label}
             </span>
 
-            <AddToCartButton product={product} size="sm" compact />
+            <div className="flex items-center gap-1.5">
+              <a
+                href={whatsappLink(`Hi ${site.name}, I'm interested in the ${product.name}.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="grid size-8 place-items-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 transition-all duration-300 hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:shadow-sm"
+                aria-label={`Ask about ${product.name} on WhatsApp`}
+              >
+                <MessageCircle className="size-3.5" />
+              </a>
+              <AddToCartButton product={product} size="sm" compact />
+            </div>
           </div>
         </div>
       </div>

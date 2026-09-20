@@ -123,25 +123,25 @@ export function CategoryGrid({
                 }}
               />
 
-              <div className="relative p-5 sm:p-6">
+              <div className="relative p-3.5 sm:p-5 md:p-6">
                 {/* Icon */}
-                <div className="relative mb-4">
+                <div className="relative mb-3 sm:mb-4">
                   <div className={`absolute -inset-3 rounded-2xl opacity-0 blur-xl transition-all duration-700 group-hover:opacity-60 ${theme.icon.split(" ").find(c => c.startsWith("bg-"))}`} />
-                  <span className={`relative grid size-14 place-items-center rounded-2xl transition-all duration-500 ${theme.icon}`}>
-                    <Icon className="size-7" strokeWidth={1.5} />
+                  <span className={`relative grid size-11 sm:size-12 md:size-14 place-items-center rounded-2xl transition-all duration-500 ${theme.icon}`}>
+                    <Icon className="size-5 sm:size-6 md:size-7" strokeWidth={1.5} />
                   </span>
                 </div>
 
                 {/* Text */}
-                <h3 className="text-[0.95rem] font-bold tracking-tight text-foreground transition-colors duration-300">
+                <h3 className="text-[0.85rem] sm:text-[0.95rem] font-bold tracking-tight text-foreground transition-colors duration-300">
                   {category.name}
                 </h3>
-                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground/70">
+                <p className="mt-1 line-clamp-2 text-[0.7rem] sm:text-xs leading-relaxed text-muted-foreground/70">
                   {category.description}
                 </p>
 
                 {/* Bottom row */}
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-3 sm:mt-4 flex items-center justify-between">
                   <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[0.65rem] font-bold tracking-wide tnum transition-all duration-300 ${theme.count}`}>
                     {category.productCount} items
                   </span>

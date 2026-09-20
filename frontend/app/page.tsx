@@ -77,7 +77,7 @@ export default async function HomePage() {
 
       <Section className="pt-0">
         <Reveal>
-          <div className="group relative overflow-hidden rounded-3xl bg-zinc-950 px-6 py-14 text-white md:px-14 md:py-20 shadow-2xl shadow-black/40">
+          <div className="group relative overflow-hidden rounded-3xl bg-zinc-950 px-5 py-10 text-white md:px-14 md:py-20 shadow-2xl shadow-black/40">
             {/* Blurred background image */}
             <div
               className="absolute inset-0 bg-cover bg-center transition-transform duration-[2s] group-hover:scale-105"
@@ -144,16 +144,16 @@ export default async function HomePage() {
               </div>
 
               {/* Right side — CTA cards */}
-              <div className="mt-10 lg:mt-0 flex flex-col sm:flex-row gap-4">
+              <div className="mt-8 sm:mt-10 lg:mt-0 flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* WhatsApp card */}
                 <a
                   href={whatsappLink("Hi Dani Brothers, I want to sell my laptop.")}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group/card relative flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-500 hover:border-emerald-400/30 hover:bg-emerald-400/[0.06] hover:shadow-lg hover:shadow-emerald-500/10"
+                  className="group/card relative flex items-center gap-3 sm:gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 transition-all duration-500 hover:border-emerald-400/30 hover:bg-emerald-400/[0.06] hover:shadow-lg hover:shadow-emerald-500/10"
                 >
-                  <span className="grid size-12 place-items-center rounded-xl bg-emerald-500/15 text-emerald-400 transition-all duration-500 group-hover/card:scale-110 group-hover/card:bg-emerald-500/25">
-                    <MessageCircle className="size-6" />
+                  <span className="grid size-10 sm:size-12 place-items-center rounded-xl bg-emerald-500/15 text-emerald-400 transition-all duration-500 group-hover/card:scale-110 group-hover/card:bg-emerald-500/25">
+                    <MessageCircle className="size-5 sm:size-6" />
                   </span>
                   <div>
                     <p className="text-sm font-bold text-white">WhatsApp a photo</p>
@@ -165,10 +165,10 @@ export default async function HomePage() {
                 {/* Form card */}
                 <Link
                   href="/contact#sell"
-                  className="group/card relative flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-500 hover:border-brand/30 hover:bg-brand/[0.06] hover:shadow-lg hover:shadow-brand/10"
+                  className="group/card relative flex items-center gap-3 sm:gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5 transition-all duration-500 hover:border-brand/30 hover:bg-brand/[0.06] hover:shadow-lg hover:shadow-brand/10"
                 >
-                  <span className="grid size-12 place-items-center rounded-xl bg-brand/15 text-blue-400 transition-all duration-500 group-hover/card:scale-110 group-hover/card:bg-brand/25">
-                    <ArrowRight className="size-6" />
+                  <span className="grid size-10 sm:size-12 place-items-center rounded-xl bg-brand/15 text-blue-400 transition-all duration-500 group-hover/card:scale-110 group-hover/card:bg-brand/25">
+                    <ArrowRight className="size-5 sm:size-6" />
                   </span>
                   <div>
                     <p className="text-sm font-bold text-white">Fill the form</p>
