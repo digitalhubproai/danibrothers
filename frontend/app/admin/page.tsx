@@ -1,13 +1,29 @@
 import type { Metadata } from "next"
 import type { ComponentType } from "react"
 import Link from "next/link"
-import { AlertTriangle, ArrowRight, Banknote, Package, ShoppingCart, Users } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowRight,
+  Banknote,
+  Package,
+  ShoppingCart,
+  Users,
+} from "lucide-react"
 import { OrderStatusBadge } from "@/components/admin/order-status-badge"
 import { prisma } from "@/lib/db"
 import { formatDate, formatPrice, formatPriceCompact } from "@/lib/format"
 import { ORDER_STATUS_LABEL, ORDER_STATUSES, type OrderStatus } from "@/lib/site"
+import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = { title: "Dashboard" }
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDING: "bg-warning",
+  CONFIRMED: "bg-brand",
+  SHIPPED: "bg-chart-4",
+  DELIVERED: "bg-success",
+  CANCELLED: "bg-destructive",
+}
 
 export default async function AdminDashboardPage() {
   const [
@@ -57,18 +73,21 @@ export default async function AdminDashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
+        <p className="text-eyebrow text-brand">Admin</p>
+        <h1 className="mt-2 text-display-sm">Dashboard</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           A snapshot of the shop right now.
         </p>
       </div>
 
-      <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
         <Tile
           icon={Banknote}
           label="Revenue"
           value={formatPriceCompact(revenue._sum.total ?? 0)}
           hint="Excludes cancelled orders"
+          accent="text-success"
+          bg="bg-success-subtle"
         />
         <Tile
           icon={ShoppingCart}
@@ -76,6 +95,8 @@ export default async function AdminDashboardPage() {
           value={String(orderCount)}
           hint={`${byStatus.get("PENDING") ?? 0} awaiting confirmation`}
           href="/admin/orders"
+          accent="text-brand"
+          bg="bg-brand-subtle"
         />
         <Tile
           icon={Package}
@@ -83,6 +104,8 @@ export default async function AdminDashboardPage() {
           value={String(productCount)}
           hint={needsAttention > 0 ? `${needsAttention} need restocking` : "All healthy"}
           href="/admin/products"
+          accent="text-warning"
+          bg="bg-warning-subtle"
         />
         <Tile
           icon={Users}
@@ -90,20 +113,22 @@ export default async function AdminDashboardPage() {
           value={String(customerCount)}
           hint={`${openInquiries} open ${openInquiries === 1 ? "inquiry" : "inquiries"}`}
           href="/admin/inquiries"
+          accent="text-brand"
+          bg="bg-brand-subtle"
         />
       </div>
 
       {(outOfStock > 0 || lowStock > 0) && (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/30 bg-warning-subtle px-4 py-3.5">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning/30 bg-warning-subtle px-4 py-3.5">
           <AlertTriangle className="size-4.5 shrink-0 text-warning" />
-          <p className="flex-1 text-sm text-warning">
+          <p className="flex-1 text-sm font-medium text-warning">
             {outOfStock > 0 && `${outOfStock} out of stock`}
             {outOfStock > 0 && lowStock > 0 && " · "}
             {lowStock > 0 && `${lowStock} running low`}
           </p>
           <Link
             href="/admin/products?filter=low"
-            className="text-sm font-medium text-warning underline-offset-4 hover:underline"
+            className="rounded-lg bg-warning/10 px-3 py-1.5 text-sm font-semibold text-warning transition-colors hover:bg-warning/20"
           >
             Review stock
           </Link>
@@ -111,12 +136,15 @@ export default async function AdminDashboardPage() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <section className="overflow-hidden rounded-xl border border-border">
-          <header className="flex items-center justify-between border-b border-border bg-card px-5 py-3.5">
-            <h2 className="text-sm font-semibold">Recent orders</h2>
+        <section className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+          <header className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div>
+              <h2 className="text-sm font-semibold">Recent orders</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">Latest checkouts</p>
+            </div>
             <Link
               href="/admin/orders"
-              className="group inline-flex items-center gap-1 text-xs font-medium text-brand"
+              className="group inline-flex items-center gap-1 rounded-lg border border-brand/20 bg-brand/5 px-3 py-1.5 text-xs font-semibold text-brand transition-all hover:border-brand/40 hover:bg-brand/10"
             >
               All orders
               <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -124,7 +152,7 @@ export default async function AdminDashboardPage() {
           </header>
 
           {recentOrders.length === 0 ? (
-            <p className="bg-card px-5 py-10 text-center text-sm text-muted-foreground">
+            <p className="bg-card px-5 py-12 text-center text-sm text-muted-foreground">
               No orders yet. They&apos;ll appear here the moment someone checks out.
             </p>
           ) : (
@@ -133,7 +161,7 @@ export default async function AdminDashboardPage() {
                 <li key={order.id}>
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center gap-4 bg-card px-5 py-3 transition-colors hover:bg-accent"
+                    className="flex items-center gap-4 bg-card px-5 py-3.5 transition-colors hover:bg-brand-subtle/30"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -146,7 +174,7 @@ export default async function AdminDashboardPage() {
                         {order.customerName} · {order.city} · {formatDate(order.createdAt)}
                       </p>
                     </div>
-                    <span className="text-sm font-medium tnum">{formatPrice(order.total)}</span>
+                    <span className="text-sm font-semibold tnum">{formatPrice(order.total)}</span>
                   </Link>
                 </li>
               ))}
@@ -154,23 +182,32 @@ export default async function AdminDashboardPage() {
           )}
         </section>
 
-        <section className="rounded-xl border border-border bg-card p-5">
+        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
           <h2 className="text-sm font-semibold">Orders by status</h2>
-          <ul className="mt-4 flex flex-col gap-2.5">
+          <ul className="mt-5 flex flex-col gap-3.5">
             {ORDER_STATUSES.map((status) => {
               const count = byStatus.get(status) ?? 0
               const share = orderCount > 0 ? (count / orderCount) * 100 : 0
               return (
                 <li key={status}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <span
+                        className={cn(
+                          "size-2 rounded-full",
+                          STATUS_COLORS[status] ?? "bg-muted-foreground",
+                        )}
+                      />
                       {ORDER_STATUS_LABEL[status as OrderStatus]}
                     </span>
                     <span className="font-medium tnum">{count}</span>
                   </div>
-                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full rounded-full bg-brand transition-[width] duration-500"
+                      className={cn(
+                        "h-full rounded-full transition-[width] duration-700",
+                        STATUS_COLORS[status] ?? "bg-brand",
+                      )}
                       style={{ width: `${share}%` }}
                     />
                   </div>
@@ -190,32 +227,50 @@ function Tile({
   value,
   hint,
   href,
+  accent,
+  bg,
 }: {
   icon: ComponentType<{ className?: string }>
   label: string
   value: string
   hint: string
   href?: string
+  accent: string
+  bg: string
 }) {
   const body = (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3">
         <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
           {label}
         </span>
-        <Icon className="size-4 text-muted-foreground" />
+        <span
+          className={cn(
+            "grid size-9 shrink-0 place-items-center rounded-xl transition-transform duration-300",
+            bg,
+            accent,
+            href && "group-hover:scale-110",
+          )}
+        >
+          <Icon className="size-4" />
+        </span>
       </div>
-      <p className="mt-3 text-2xl font-semibold tracking-tight tnum">{value}</p>
+      <p className="mt-4 text-2xl font-bold tracking-tight tnum">{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
     </>
   )
 
   if (href) {
     return (
-      <Link href={href} className="bg-card px-5 py-4 transition-colors hover:bg-accent">
+      <Link
+        href={href}
+        className="group rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-md hover:shadow-brand/5"
+      >
         {body}
       </Link>
     )
   }
-  return <div className="bg-card px-5 py-4">{body}</div>
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">{body}</div>
+  )
 }

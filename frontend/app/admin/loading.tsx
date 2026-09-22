@@ -12,21 +12,26 @@ export default function AdminLoading() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="mt-3 h-8 w-48" />
         <Skeleton className="mt-2.5 h-4 w-72" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((card) => (
-          <div key={card} className="rounded-xl border border-border bg-card p-5">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="mt-3 h-7 w-24" />
+          <div key={card} className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="size-9 rounded-xl" />
+            </div>
+            <Skeleton className="mt-4 h-7 w-24" />
+            <Skeleton className="mt-2 h-3 w-32" />
           </div>
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="flex items-center gap-4 border-b border-border px-5 py-3.5">
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+        <div className="flex items-center gap-4 border-b border-border px-5 py-4">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="ml-auto h-8 w-28" />
         </div>

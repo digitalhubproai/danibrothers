@@ -2,6 +2,7 @@ import Link from "next/link"
 import {
   ArrowUpRight,
   Cable,
+  Camera,
   Cpu,
   HardDrive,
   Headphones,
@@ -23,6 +24,7 @@ const ICONS: Record<string, LucideIcon> = {
   cpu: Cpu,
   headphones: Headphones,
   cable: Cable,
+  cctv: Camera,
 }
 
 const THEMES = [

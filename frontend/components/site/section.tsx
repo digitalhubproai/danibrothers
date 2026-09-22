@@ -45,7 +45,7 @@ export function SectionHeading({
       {action && (
         <Link
           href={action.href}
-          className="group inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-brand transition-colors hover:text-foreground"
+          className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-sm font-medium text-brand transition-all duration-300 hover:border-brand/40 hover:bg-brand/10 hover:shadow-sm hover:shadow-brand/10"
         >
           {action.label}
           <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />

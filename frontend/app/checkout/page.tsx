@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { CheckoutForm } from "@/components/checkout/checkout-form"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { PageHero } from "@/components/site/page-hero"
+import { Reveal } from "@/components/motion/reveal"
 import { Shield, Truck, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -20,26 +22,20 @@ export default async function CheckoutPage() {
 
   return (
     <div className="container-page py-10 md:py-14">
-      {/* Header */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-tight">
-            Checkout
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground/80">
-            Two minutes, no account needed. We&apos;ll call you to confirm the order
-            and delivery window before anything ships.
-          </p>
-        </div>
-
-        {/* Trust badges */}
+      <PageHero
+        compact
+        eyebrow="Secure checkout"
+        title="Checkout"
+        description="Two minutes, no account needed. We'll call you to confirm the order and delivery window before anything ships."
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart", href: "/cart" }, { label: "Checkout" }]}
+      >
         <div className="flex flex-wrap gap-4">
           {[
-            { icon: Shield, text: "Secure checkout", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-            { icon: Truck, text: "Nationwide delivery", color: "text-blue-500", bg: "bg-blue-500/10" },
-            { icon: Clock, text: "Same day confirm", color: "text-amber-500", bg: "bg-amber-500/10" },
+            { icon: Shield, text: "Secure checkout", color: "text-success", bg: "bg-success-subtle" },
+            { icon: Truck, text: "Nationwide delivery", color: "text-brand", bg: "bg-brand-subtle" },
+            { icon: Clock, text: "Same day confirm", color: "text-warning", bg: "bg-warning-subtle" },
           ].map(({ icon: Icon, text, color, bg }) => (
-            <div key={text} className="flex items-center gap-2 text-xs font-medium text-muted-foreground/70">
+            <div key={text} className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
               <span className={`grid size-7 place-items-center rounded-lg ${bg} ${color}`}>
                 <Icon className="size-3.5" />
               </span>
@@ -47,7 +43,7 @@ export default async function CheckoutPage() {
             </div>
           ))}
         </div>
-      </div>
+      </PageHero>
 
       {/* Step indicator */}
       <div className="mt-8 flex items-center gap-3">
@@ -67,9 +63,9 @@ export default async function CheckoutPage() {
         </div>
       </div>
 
-      <div className="mt-8">
+      <Reveal className="mt-8">
         <CheckoutForm user={profile ?? null} />
-      </div>
+      </Reveal>
     </div>
   )
 }

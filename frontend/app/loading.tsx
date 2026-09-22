@@ -8,10 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function Loading() {
   return (
     <>
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-border bg-gradient-to-b from-brand-subtle/50 to-card">
         <div className="container-page py-8 md:py-10">
           <Skeleton className="h-3 w-32" />
-          <Skeleton className="mt-4 h-8 w-64" />
+          <Skeleton className="mt-4 h-10 w-64" />
           <Skeleton className="mt-3 h-4 w-full max-w-xl" />
         </div>
       </div>

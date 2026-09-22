@@ -6,7 +6,6 @@ import {
   ChevronRight,
   MessageCircle,
   RefreshCw,
-  Share2,
   Shield,
   Star,
   Truck,
@@ -21,7 +20,9 @@ import { ProductGrid } from "@/components/product/product-card"
 import { CompareSection } from "@/components/product/compare-section"
 import { ReviewSection } from "@/components/product/review-section"
 import { TrackView } from "@/components/product/track-view"
+import { ShareButton } from "@/components/product/share-button"
 import { Section, SectionHeading } from "@/components/site/section"
+import { Reveal } from "@/components/motion/reveal"
 import { getProductBySlug, getRelatedProducts, stockState } from "@/lib/products"
 import { CONDITION_DESCRIPTION, FREE_SHIPPING_THRESHOLD, site, whatsappLink, type Condition } from "@/lib/site"
 import { discountPercent, formatPrice } from "@/lib/format"
@@ -50,10 +51,10 @@ export async function generateMetadata({
 }
 
 const ASSURANCES = [
-  { icon: Truck, title: "2–4 day delivery", body: "Nationwide, free over threshold", color: "text-blue-500", bg: "bg-blue-500/10" },
-  { icon: Banknote, title: "Cash on delivery", body: "Pay when it arrives", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { icon: Shield, title: "Written warranty", body: "Printed on your invoice", color: "text-amber-500", bg: "bg-amber-500/10" },
-  { icon: Wrench, title: "Bench-tested", body: "Full health report included", color: "text-purple-500", bg: "bg-purple-500/10" },
+  { icon: Truck, title: "2–4 day delivery", body: "Nationwide, free over threshold", color: "text-brand", bg: "bg-brand-subtle" },
+  { icon: Banknote, title: "Cash on delivery", body: "Pay when it arrives", color: "text-success", bg: "bg-success-subtle" },
+  { icon: Shield, title: "Written warranty", body: "Printed on your invoice", color: "text-warning", bg: "bg-warning-subtle" },
+  { icon: Wrench, title: "Bench-tested", body: "Full health report included", color: "text-brand", bg: "bg-brand-subtle" },
 ]
 
 export default async function ProductPage({
@@ -102,9 +103,11 @@ export default async function ProductPage({
 
       {/* Product main section */}
       <div className="container-page grid gap-10 py-8 lg:grid-cols-2 lg:gap-14 lg:py-12">
-        <ProductGallery images={product.images} alt={product.name} />
+        <Reveal y={16}>
+          <ProductGallery images={product.images} alt={product.name} />
+        </Reveal>
 
-        <div className="flex flex-col">
+        <Reveal y={16} delay={0.08} className="flex flex-col">
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2.5">
             <ConditionBadge condition={product.condition} className="px-2.5 py-1" />
@@ -129,9 +132,9 @@ export default async function ProductPage({
           {/* Quick trust row */}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             {[
-              { icon: Check, text: "Tested", color: "text-emerald-500" },
-              { icon: Shield, text: "Warranty", color: "text-amber-500" },
-              { icon: Truck, text: "Free delivery", color: "text-blue-500" },
+              { icon: Check, text: "Tested", color: "text-success" },
+              { icon: Shield, text: "Warranty", color: "text-warning" },
+              { icon: Truck, text: "Free delivery", color: "text-brand" },
             ].map(({ icon: Icon, text, color }) => (
               <span key={text} className="flex items-center gap-1 text-xs font-medium text-muted-foreground/70">
                 <Icon className={`size-3 ${color}`} />
@@ -150,7 +153,7 @@ export default async function ProductPage({
                 <span className="text-base text-muted-foreground/50 line-through tnum">
                   {formatPrice(product.compareAtPrice)}
                 </span>
-                <span className="rounded-lg bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600 tnum">
+                <span className="rounded-lg bg-success-subtle px-2.5 py-0.5 text-xs font-bold text-success tnum">
                   You save {formatPrice(product.compareAtPrice - product.price)}
                 </span>
               </>
@@ -160,19 +163,19 @@ export default async function ProductPage({
           {/* Stock */}
           <div className={cn(
             "mt-3 inline-flex items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-semibold",
-            stock.tone === "success" && "bg-emerald-500/10 text-emerald-600",
-            stock.tone === "warning" && "bg-amber-500/10 text-amber-600",
-            stock.tone === "destructive" && "bg-red-500/10 text-red-600",
+            stock.tone === "success" && "bg-success-subtle text-success",
+            stock.tone === "warning" && "bg-warning-subtle text-warning",
+            stock.tone === "destructive" && "bg-destructive-subtle text-destructive",
           )}>
             <span className={cn(
               "size-1.5 rounded-full",
-              stock.tone === "success" && "bg-emerald-500",
-              stock.tone === "warning" && "bg-amber-500 animate-pulse",
-              stock.tone === "destructive" && "bg-red-500",
+              stock.tone === "success" && "bg-success",
+              stock.tone === "warning" && "bg-warning animate-pulse",
+              stock.tone === "destructive" && "bg-destructive",
             )} />
             {stock.label}
             {stock.tone === "warning" && (
-              <span className="text-amber-500/80">— order soon!</span>
+              <span className="opacity-80">— order soon!</span>
             )}
           </div>
 
@@ -205,7 +208,7 @@ export default async function ProductPage({
           </div>
 
           {/* Share + WhatsApp */}
-          <div className="mt-5 flex items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <a
               href={whatsappLink(`Hi ${site.name}, I'm interested in the ${product.name}.`)}
               target="_blank"
@@ -215,12 +218,17 @@ export default async function ProductPage({
               <MessageCircle className="size-3.5" />
               Ask on WhatsApp
             </a>
+            <ShareButton
+              title={product.name}
+              text={`${product.name} at ${site.name} — ${formatPrice(product.price)}`}
+              url={`${site.url}/product/${product.slug}`}
+            />
           </div>
 
           <p className="mt-4 text-[0.65rem] text-muted-foreground/50">
             Free delivery on orders over {formatPrice(FREE_SHIPPING_THRESHOLD)}. 15-day return window on unused items.
           </p>
-        </div>
+        </Reveal>
       </div>
 
       {/* Specs + Info section */}
@@ -335,7 +343,9 @@ export default async function ProductPage({
             title={product.category ? `More in ${product.category.name}` : "Related products"}
             action={{ href: "/shop", label: "Browse all" }}
           />
-          <ProductGrid products={related} />
+          <Reveal>
+            <ProductGrid products={related} />
+          </Reveal>
         </Section>
       )}
     </>

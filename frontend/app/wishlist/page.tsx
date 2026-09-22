@@ -1,14 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, ShoppingCart, Trash2 } from "lucide-react"
+import { ArrowRight, Heart, ShoppingCart, Trash2 } from "lucide-react"
 import { useWishlist } from "@/lib/wishlist"
 import { useCart } from "@/lib/cart"
 import { formatPrice } from "@/lib/format"
 import { ConditionBadge } from "@/components/product/condition-badge"
 import { ProductThumb } from "@/components/product/product-thumb"
-import Image from "next/image"
-import { cn } from "@/lib/utils"
+import { PageHero } from "@/components/site/page-hero"
+import { Button } from "@/components/ui/button"
 
 export default function WishlistPage() {
   const items = useWishlist((s) => s.items)
@@ -17,42 +17,44 @@ export default function WishlistPage() {
   const add = useCart((s) => s.add)
 
   return (
-    <div className="container-page py-10 md:py-14">
-      <div className="flex items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">My Wishlist</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {items.length === 0
-              ? "No items saved yet."
-              : `${items.length} ${items.length === 1 ? "item" : "items"} saved`}
-          </p>
-        </div>
+    <>
+      <PageHero
+        compact
+        title="My Wishlist"
+        description={
+          items.length === 0
+            ? "No items saved yet."
+            : `${items.length} ${items.length === 1 ? "item" : "items"} saved`
+        }
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Wishlist" }]}
+      >
         {items.length > 0 && (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={clear}
-            className="text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
+            className="text-muted-foreground hover:text-destructive"
           >
+            <Trash2 />
             Clear all
-          </button>
+          </Button>
         )}
-      </div>
+      </PageHero>
 
+      <div className="container-page py-10 md:py-14">
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-20 text-center">
-          <span className="grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
+          <span className="grid size-14 place-items-center rounded-full bg-brand-subtle text-brand">
             <Heart className="size-6" />
           </span>
           <h2 className="mt-5 text-base font-semibold">Your wishlist is empty</h2>
           <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
             Browse products and tap the heart icon to save items you like.
           </p>
-          <Link
-            href="/shop"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-lg hover:shadow-brand/25"
-          >
+          <Button className="mt-6" size="lg" nativeButton={false} render={<Link href="/shop" />}>
             Browse products
-          </Link>
+            <ArrowRight />
+          </Button>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -129,6 +131,7 @@ export default function WishlistPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }

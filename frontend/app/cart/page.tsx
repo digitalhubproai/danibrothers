@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ProductThumb } from "@/components/product/product-thumb"
 import { ConditionBadge } from "@/components/product/condition-badge"
 import { useCart, cartSubtotal } from "@/lib/cart"
+import { PageHero } from "@/components/site/page-hero"
+import { Reveal } from "@/components/motion/reveal"
 import { useCartHydrated } from "@/components/site/use-cart-count"
 import { formatPrice } from "@/lib/format"
 import { FREE_SHIPPING_THRESHOLD, shippingFor } from "@/lib/site"
@@ -36,37 +38,44 @@ export default function CartPage() {
 
   if (lines.length === 0) {
     return (
-      <div className="container-page flex flex-col items-center justify-center py-24 text-center">
-        <span className="grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
-          <ShoppingBag className="size-6" />
-        </span>
-        <h1 className="mt-5 text-xl font-semibold tracking-tight">Your cart is empty</h1>
-        <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          Nothing here yet. Browse the shop — or tell us what you need and we&apos;ll check what
-          came in this week.
-        </p>
-        <div className="mt-7 flex flex-wrap justify-center gap-3">
-          <Button nativeButton={false} render={<Link href="/shop" />}>
-            Start shopping
-            <ArrowRight />
-          </Button>
-          <Button variant="outline" nativeButton={false} render={<Link href="/contact" />}>
-            Ask for a recommendation
-          </Button>
+      <>
+        <PageHero
+          compact
+          title="Your cart"
+          description="Nothing reserved yet."
+          breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart" }]}
+        />
+        <div className="container-page flex flex-col items-center justify-center py-20 text-center">
+          <span className="grid size-14 place-items-center rounded-full bg-brand-subtle text-brand">
+            <ShoppingBag className="size-6" />
+          </span>
+          <h2 className="mt-5 text-xl font-semibold tracking-tight">Your cart is empty</h2>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            Nothing here yet. Browse the shop — or tell us what you need and we&apos;ll check what
+            came in this week.
+          </p>
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <Button nativeButton={false} render={<Link href="/shop" />}>
+              Start shopping
+              <ArrowRight />
+            </Button>
+            <Button variant="outline" nativeButton={false} render={<Link href="/contact" />}>
+              Ask for a recommendation
+            </Button>
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 
   return (
-    <div className="container-page py-10 md:py-14">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-display-sm">Your cart</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            {lines.length} {lines.length === 1 ? "item" : "items"} · reserved once you check out
-          </p>
-        </div>
+    <>
+      <PageHero
+        compact
+        title="Your cart"
+        description={`${lines.length} ${lines.length === 1 ? "item" : "items"} · reserved once you check out`}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart" }]}
+      >
         <Button
           variant="ghost"
           size="sm"
@@ -76,9 +85,11 @@ export default function CartPage() {
           <Trash2 />
           Clear cart
         </Button>
-      </div>
+      </PageHero>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem] lg:gap-12">
+      <div className="container-page py-10 md:py-14">
+        <Reveal>
+          <div className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:gap-12">
         <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
           {lines.map((line) => (
             <li key={line.productId} className="flex gap-4 bg-card p-4">
@@ -211,7 +222,9 @@ export default function CartPage() {
             Continue shopping
           </Link>
         </aside>
+          </div>
+        </Reveal>
       </div>
-    </div>
+    </>
   )
 }

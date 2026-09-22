@@ -32,6 +32,7 @@ export const CATEGORY_IMAGE: Record<string, string> = {
   components: U("1591799264318-7dbdea508b36"),
   "audio-webcams": U("1546435770-a3e426bf472b"),
   accessories: U("1625842268584-8f3296236761"),
+  "security-cctv": U("1557597774-9d273605dfa9"),
 }
 
 /** Per-product overrides. Falls back to a category crop. */

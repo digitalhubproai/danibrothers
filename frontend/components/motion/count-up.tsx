@@ -9,10 +9,13 @@ import { useInView, useReducedMotion } from "motion/react"
  * Driven by rAF rather than a spring so the easing curve is explicit and the
  * final frame lands exactly on `value` — a spring can settle at 2399.8 and
  * render "2399" next to a label that says 2400.
+ *
+ * `setDisplay` only runs inside a rAF callback, never synchronously in the
+ * effect body (react-hooks/set-state-in-effect).
  */
 export function CountUp({
   value,
-  duration = 1400,
+  duration = 1600,
   suffix = "",
   prefix = "",
   decimals = 0,
@@ -26,15 +29,16 @@ export function CountUp({
   className?: string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true, margin: "-60px" })
+  const inView = useInView(ref, { once: true, margin: "-40px" })
   const reduceMotion = useReducedMotion()
   const [display, setDisplay] = useState(0)
 
   useEffect(() => {
     if (!inView) return
+
     if (reduceMotion) {
-      setDisplay(value)
-      return
+      const id = requestAnimationFrame(() => setDisplay(value))
+      return () => cancelAnimationFrame(id)
     }
 
     let frame = 0

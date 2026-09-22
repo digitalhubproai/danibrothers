@@ -84,13 +84,14 @@ export default async function AdminOrdersPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Orders</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
+        <p className="text-eyebrow text-brand">Admin</p>
+        <h1 className="mt-2 text-display-sm">Orders</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           {total} {total === 1 ? "order" : "orders"} matching the current view.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/60 bg-card p-1.5 w-fit">
         <Tab href={tabHref("")} active={!status}>
           All
         </Tab>
@@ -121,27 +122,27 @@ export default async function AdminOrdersPage({
       </form>
 
       {orders.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-card px-6 py-16 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center text-sm text-muted-foreground">
           No orders here yet.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="overflow-x-auto rounded-2xl border border-border/60 shadow-sm">
           <table className="w-full min-w-[44rem] border-collapse text-sm">
             <thead>
               <tr className="border-b border-border bg-card text-left">
-                <th className="px-4 py-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Order
                 </th>
-                <th className="px-4 py-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Customer
                 </th>
-                <th className="px-4 py-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Placed
                 </th>
-                <th className="px-4 py-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <th className="px-4 py-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Status
                 </th>
-                <th className="px-4 py-2.5 text-right text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                <th className="px-4 py-3 text-right text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Total
                 </th>
               </tr>
@@ -150,7 +151,7 @@ export default async function AdminOrdersPage({
               {orders.map((order) => (
                 <tr
                   key={order.id}
-                  className="border-b border-border bg-card transition-colors last:border-0 hover:bg-accent"
+                  className="border-b border-border bg-card transition-colors last:border-0 hover:bg-brand-subtle/30"
                 >
                   <td className="px-4 py-3">
                     <Link
@@ -217,10 +218,10 @@ function Tab({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-200",
         active
-          ? "border-foreground bg-primary text-primary-foreground"
-          : "border-border bg-card text-muted-foreground hover:text-foreground",
+          ? "border-brand/30 bg-brand text-white shadow-sm shadow-brand/20"
+          : "border-border bg-card text-muted-foreground hover:border-brand/20 hover:text-foreground",
       )}
     >
       {children}
@@ -228,7 +229,7 @@ function Tab({
         <span
           className={cn(
             "rounded px-1 text-[0.625rem] tnum",
-            active ? "bg-primary-foreground/20" : "bg-muted",
+            active ? "bg-white/20" : "bg-muted",
           )}
         >
           {count}

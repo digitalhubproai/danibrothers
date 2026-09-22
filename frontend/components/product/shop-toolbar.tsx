@@ -45,7 +45,11 @@ export function ShopToolbar({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+    <div
+      className={`flex items-center justify-between gap-3 border-b border-border pb-4 transition-opacity duration-300 ${
+        isPending ? "opacity-60" : "opacity-100"
+      }`}
+    >
       <p className="text-sm text-muted-foreground" aria-live="polite">
         <span className="font-medium text-foreground tnum">{total}</span>{" "}
         {total === 1 ? "product" : "products"}
@@ -55,7 +59,11 @@ export function ShopToolbar({
         <Sheet>
           <SheetTrigger
             render={
-              <Button variant="outline" size="sm" className="lg:hidden" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="lg:hidden transition-all duration-300 hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
+              />
             }
           >
             <SlidersHorizontal />
@@ -76,7 +84,11 @@ export function ShopToolbar({
           value={sort}
           onValueChange={(value) => changeSort(String(value))}
         >
-          <SelectTrigger size="sm" className="h-8 min-w-[11rem]" aria-label="Sort products">
+          <SelectTrigger
+            size="sm"
+            className="h-8 min-w-[11rem] transition-all duration-300 hover:border-brand/40 focus:ring-3 focus:ring-brand/15"
+            aria-label="Sort products"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="end" alignItemWithTrigger={false}>

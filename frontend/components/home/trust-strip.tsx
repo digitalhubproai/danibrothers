@@ -6,41 +6,41 @@ const POINTS = [
     icon: Wrench,
     title: "Checked before it leaves",
     body: "Storage health, battery cycles, thermals, ports and screen — every machine is bench-tested and the report stays with the unit.",
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-    glow: "group-hover:shadow-blue-500/20",
-    border: "group-hover:border-blue-500/20",
-    accent: "from-blue-500 to-cyan-400",
+    color: "text-brand",
+    bg: "bg-brand-subtle",
+    glow: "group-hover:shadow-brand/20",
+    border: "group-hover:border-brand/25",
+    accent: "from-brand to-brand/40",
   },
   {
     icon: BadgeCheck,
     title: "Warranty, in writing",
     body: "Brand new stock carries manufacturer warranty. Refurbished units get 6 months with us. Pre-owned gets a 15-day check window.",
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-    glow: "group-hover:shadow-emerald-500/20",
-    border: "group-hover:border-emerald-500/20",
-    accent: "from-emerald-500 to-teal-400",
+    color: "text-success",
+    bg: "bg-success-subtle",
+    glow: "group-hover:shadow-success/20",
+    border: "group-hover:border-success/25",
+    accent: "from-success to-success/40",
   },
   {
     icon: Banknote,
     title: "Cash on delivery",
     body: "Pay when the courier hands it over, or by bank transfer if you prefer. No card details, no advance payment.",
-    color: "text-amber-500",
-    bg: "bg-amber-500/10",
-    glow: "group-hover:shadow-amber-500/20",
-    border: "group-hover:border-amber-500/20",
-    accent: "from-amber-500 to-orange-400",
+    color: "text-warning",
+    bg: "bg-warning-subtle",
+    glow: "group-hover:shadow-warning/20",
+    border: "group-hover:border-warning/25",
+    accent: "from-warning to-warning/40",
   },
   {
     icon: PackageCheck,
     title: "We buy as well as sell",
     body: "Upgrading? Bring your old laptop in for a same-day valuation, or send photos on WhatsApp for a ballpark figure.",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
-    glow: "group-hover:shadow-purple-500/20",
-    border: "group-hover:border-purple-500/20",
-    accent: "from-purple-500 to-pink-400",
+    color: "text-brand",
+    bg: "bg-brand-subtle",
+    glow: "group-hover:shadow-brand/20",
+    border: "group-hover:border-brand/25",
+    accent: "from-brand to-brand/40",
   },
 ]
 
@@ -49,7 +49,7 @@ export function TrustStrip() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {POINTS.map(({ icon: Icon, title, body, color, bg, glow, border, accent }, index) => (
         <Reveal key={title} delay={index * 0.08}>
-          <div className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-all duration-500 hover:-translate-y-1 hover:border-transparent ${glow} hover:shadow-xl`}>
+          <div className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-all duration-500 hover:-translate-y-1 ${border} ${glow} hover:shadow-xl`}>
             {/* Top accent line */}
             <div className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r ${accent} opacity-0 scale-x-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-x-100`} />
 

@@ -1,3 +1,5 @@
+"use client"
+
 import { CountUp } from "@/components/motion/count-up"
 import { Marquee } from "@/components/motion/marquee"
 import { site } from "@/lib/site"
@@ -26,17 +28,22 @@ const BRANDS = [
   "TP-Link",
   "Anker",
   "UGREEN",
+  "Hikvision",
+  "Dahua",
 ]
 
 export function Stats() {
   return (
-    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border lg:grid-cols-4">
       {STATS.map((stat) => (
-        <div key={stat.label} className="bg-card px-5 py-6 text-center">
-          <p className="text-3xl font-semibold tracking-tight tnum sm:text-4xl">
+        <div
+          key={stat.label}
+          className="bg-card px-5 py-8 text-center transition-colors duration-300 hover:bg-brand-subtle/40"
+        >
+          <p className="text-3xl font-semibold tracking-tight text-foreground tnum sm:text-4xl">
             <CountUp value={stat.value} suffix={stat.suffix} />
           </p>
-          <p className="mt-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          <p className="mt-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {stat.label}
           </p>
         </div>

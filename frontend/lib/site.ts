@@ -1,8 +1,8 @@
 export const site = {
   name: "Dani Brothers",
-  tagline: "Computers, laptops & accessories",
+  tagline: "Computers, laptops, CCTV & accessories",
   description:
-    "Buy new and certified pre-owned laptops, desktops and computer accessories — with warranty, honest pricing and nationwide delivery across Pakistan.",
+    "Buy new and certified pre-owned laptops, desktops, CCTV security cameras and computer accessories — with warranty, honest pricing and nationwide delivery across Pakistan.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   phone: "+92 345 291 6412",
   phoneHref: "tel:+923452916412",

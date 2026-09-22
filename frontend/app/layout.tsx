@@ -40,6 +40,10 @@ export const metadata: Metadata = {
     "used laptops",
     "refurbished laptops",
     "computer accessories",
+    "CCTV Pakistan",
+    "security cameras Karachi",
+    "CCTV installation",
+    "surveillance cameras",
     "Dani Brothers",
   ],
   openGraph: {

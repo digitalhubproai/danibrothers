@@ -20,6 +20,7 @@ import { prisma } from "@/lib/db"
 import { formatDateTime, formatPrice } from "@/lib/format"
 import { ORDER_STATUS_LABEL, type OrderStatus, site, whatsappLink } from "@/lib/site"
 import { cn } from "@/lib/utils"
+import { Reveal } from "@/components/motion/reveal"
 
 export const metadata: Metadata = {
   title: "Order confirmed",
@@ -48,16 +49,19 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <ClearCartOnMount />
 
       {/* Header */}
-      <div className="mx-auto max-w-2xl text-center">
+      <Reveal className="mx-auto max-w-2xl text-center" y={12}>
         <span
           className={cn(
-            "mx-auto grid size-16 place-items-center rounded-full",
+            "relative mx-auto grid size-16 place-items-center rounded-full",
             cancelled
               ? "bg-red-500/10 text-red-500"
               : "bg-emerald-500/10 text-emerald-500",
           )}
         >
-          <CheckCircle2 className="size-8" strokeWidth={1.5} />
+          {!cancelled && (
+            <span aria-hidden className="absolute inset-0 rounded-full bg-emerald-400/20 blur-xl animate-pulse" />
+          )}
+          <CheckCircle2 className="relative size-8" strokeWidth={1.5} />
         </span>
 
         <h1 className="mt-5 text-2xl font-bold tracking-tight">
@@ -76,7 +80,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <div className="h-4 w-px bg-border" />
           <OrderStatusBadge status={order.status} />
         </div>
-      </div>
+      </Reveal>
 
       {/* Timeline */}
       {!cancelled && (

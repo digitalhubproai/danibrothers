@@ -18,9 +18,9 @@ import {
   HardDrive,
   Cpu,
   Cable,
-  PcCase,
   Package,
   Heart,
+  Camera,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -46,6 +46,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   components: <Cpu className="size-4" />,
   "audio-webcams": <Headphones className="size-4" />,
   accessories: <Cable className="size-4" />,
+  "security-cctv": <Camera className="size-4" />,
 }
 
 const STATIC_LINKS = [
@@ -71,6 +72,20 @@ export function SiteHeader({
   const [shopMounted, setShopMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const shopRef = useRef<HTMLDivElement>(null)
+  const shopCloseTimer = useRef<number | null>(null)
+
+  const openShop = () => {
+    if (shopCloseTimer.current) {
+      window.clearTimeout(shopCloseTimer.current)
+      shopCloseTimer.current = null
+    }
+    setShopOpen(true)
+  }
+
+  const scheduleCloseShop = () => {
+    if (shopCloseTimer.current) window.clearTimeout(shopCloseTimer.current)
+    shopCloseTimer.current = window.setTimeout(() => setShopOpen(false), 120)
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -108,6 +123,12 @@ export function SiteHeader({
     }
   }, [shopOpen])
 
+  useEffect(() => {
+    return () => {
+      if (shopCloseTimer.current) window.clearTimeout(shopCloseTimer.current)
+    }
+  }, [])
+
   return (
     <>
       <AnnouncementBar />
@@ -125,10 +146,16 @@ export function SiteHeader({
 
           {/* Desktop nav */}
           <nav className="ml-2 hidden items-center gap-0.5 lg:flex">
-            <div className="relative" ref={shopRef}>
+            <div
+              className="relative"
+              ref={shopRef}
+              onMouseEnter={openShop}
+              onMouseLeave={scheduleCloseShop}
+            >
               <button
                 type="button"
                 onClick={() => setShopOpen((v) => !v)}
+                onFocus={openShop}
                 aria-expanded={shopOpen}
                 aria-haspopup="true"
                 className={cn(

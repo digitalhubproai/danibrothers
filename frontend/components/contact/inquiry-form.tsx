@@ -31,9 +31,9 @@ export function InquiryForm({ defaultType = "GENERAL" }: { defaultType?: Inquiry
 
   if (state?.ok) {
     return (
-      <div className="flex flex-col items-center rounded-xl border border-border bg-card px-6 py-14 text-center">
-        <span className="grid size-12 place-items-center rounded-full bg-success-subtle text-success">
-          <CheckCircle2 className="size-6" />
+      <div className="flex flex-col items-center rounded-2xl border border-success/25 bg-success-subtle/40 px-6 py-14 text-center">
+        <span className="grid size-14 place-items-center rounded-full bg-success/15 text-success shadow-sm shadow-success/10">
+          <CheckCircle2 className="size-7" />
         </span>
         <h2 className="mt-4 text-base font-semibold">Message received</h2>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
@@ -47,7 +47,7 @@ export function InquiryForm({ defaultType = "GENERAL" }: { defaultType?: Inquiry
     <form action={formAction} className="flex flex-col gap-4" noValidate>
       <input type="hidden" name="type" value={type} />
 
-      <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
         {(
           [
             { value: "SELL_DEVICE", label: "Sell a device" },
@@ -60,7 +60,7 @@ export function InquiryForm({ defaultType = "GENERAL" }: { defaultType?: Inquiry
             onClick={() => setType(option.value)}
             aria-pressed={type === option.value}
             className={cn(
-              "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
               type === option.value
                 ? "bg-card text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -154,7 +154,7 @@ export function InquiryForm({ defaultType = "GENERAL" }: { defaultType?: Inquiry
         {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
       </div>
 
-      <Button type="submit" size="lg" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="w-full shadow-sm" disabled={pending}>
         {pending ? <Loader2 className="animate-spin" /> : <Send />}
         {selling ? "Get a valuation" : "Send message"}
       </Button>

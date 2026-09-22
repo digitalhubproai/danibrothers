@@ -9,6 +9,8 @@ import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { formatDate, formatPrice } from "@/lib/format"
 import { site } from "@/lib/site"
+import { PageHero } from "@/components/site/page-hero"
+import { Reveal } from "@/components/motion/reveal"
 
 export const metadata: Metadata = {
   title: "Your account",
@@ -40,31 +42,31 @@ export default async function AccountPage() {
     .reduce((sum, o) => sum + o.total, 0)
 
   return (
-    <div className="container-page py-10 md:py-14">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-eyebrow text-brand">Your account</p>
-          <h1 className="text-display-sm mt-2">{user.name}</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">{user.email}</p>
-        </div>
+    <>
+      <PageHero
+        compact
+        eyebrow="Your account"
+        title={user.name}
+        description={user.email}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Account" }]}
+      >
+        {user.role === "ADMIN" && (
+          <Button variant="outline" nativeButton={false} render={<Link href="/admin" />}>
+            <ShieldCheck />
+            Admin dashboard
+          </Button>
+        )}
+        <form action={logoutAction}>
+          <Button type="submit" variant="ghost" className="text-muted-foreground">
+            <LogOut />
+            Sign out
+          </Button>
+        </form>
+      </PageHero>
 
-        <div className="flex items-center gap-2">
-          {user.role === "ADMIN" && (
-            <Button variant="outline" nativeButton={false} render={<Link href="/admin" />}>
-              <ShieldCheck />
-              Admin dashboard
-            </Button>
-          )}
-          <form action={logoutAction}>
-            <Button type="submit" variant="ghost" className="text-muted-foreground">
-              <LogOut />
-              Sign out
-            </Button>
-          </form>
-        </div>
-      </div>
-
-      <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+      <div className="container-page py-10 md:py-14">
+      <Reveal>
+      <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
         <Stat label="Orders placed" value={String(orders.length)} />
         <Stat label="Total spent" value={formatPrice(totalSpent)} />
         <Stat
@@ -72,6 +74,7 @@ export default async function AccountPage() {
           value={profile ? formatDate(profile.createdAt) : "—"}
         />
       </div>
+      </Reveal>
 
       <h2 className="mt-10 text-lg font-semibold tracking-tight">Order history</h2>
 
@@ -137,7 +140,8 @@ export default async function AccountPage() {
       <p className="mt-6 text-xs text-muted-foreground">
         {site.name} · {site.address}
       </p>
-    </div>
+      </div>
+    </>
   )
 }
 

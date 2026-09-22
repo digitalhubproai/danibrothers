@@ -71,12 +71,13 @@ export default async function AdminProductsPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Products</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="text-eyebrow text-brand">Admin</p>
+          <h1 className="mt-2 text-display-sm">Products</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             {total} {total === 1 ? "product" : "products"} in the catalogue.
           </p>
         </div>
-        <Button nativeButton={false} render={<Link href="/admin/products/new" />}>
+        <Button nativeButton={false} render={<Link href="/admin/products/new" />} className="shadow-sm">
           <Plus />
           New product
         </Button>
@@ -136,11 +137,11 @@ export default async function AdminProductsPage({
       </form>
 
       {products.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-card px-6 py-16 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center text-sm text-muted-foreground">
           Nothing matches. Try a different search, or reset the filters.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div className="overflow-x-auto rounded-2xl border border-border/60 shadow-sm">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <thead>
               <tr className="border-b border-border bg-card text-left">
@@ -162,7 +163,10 @@ export default async function AdminProductsPage({
                 }
 
                 return (
-                  <tr key={product.id} className="border-b border-border bg-card last:border-0">
+                  <tr
+                    key={product.id}
+                    className="border-b border-border bg-card transition-colors last:border-0 hover:bg-brand-subtle/30"
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <span className="relative size-10 shrink-0 overflow-hidden rounded-md border border-border">

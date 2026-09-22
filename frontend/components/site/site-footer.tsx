@@ -15,6 +15,7 @@ const shopLinks = [
   { href: "/shop?category=monitors", label: "Monitors" },
   { href: "/shop?category=keyboards-mice", label: "Keyboards & Mice" },
   { href: "/shop?category=storage", label: "Storage & Drives" },
+  { href: "/shop?category=security-cctv", label: "Security & CCTV" },
   { href: "/shop?category=accessories", label: "Accessories" },
 ]
 

@@ -35,7 +35,7 @@ export function Logo({
         <span className="flex flex-col leading-none">
           <span className="text-[0.9375rem] font-semibold tracking-tight">{site.name}</span>
           <span className="text-[0.625rem] font-medium tracking-[0.12em] text-muted-foreground uppercase">
-            Computers &amp; Accessories
+            Computers &amp; CCTV
           </span>
         </span>
       )}

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react"
 import Link from "next/link"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,7 +24,7 @@ export function RegisterForm({ next }: { next: string }) {
       {state && !state.ok && (
         <p
           role="alert"
-          className="flex items-start gap-2 rounded-lg bg-destructive-subtle px-3 py-2.5 text-sm text-destructive"
+          className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive-subtle px-3.5 py-2.5 text-sm text-destructive"
         >
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
           {state.message}
@@ -39,7 +39,7 @@ export function RegisterForm({ next }: { next: string }) {
           autoComplete="name"
           placeholder="Ahmed Raza"
           aria-invalid={!!errors.name}
-          className="h-9"
+          className="h-10"
           required
         />
         {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
@@ -54,7 +54,7 @@ export function RegisterForm({ next }: { next: string }) {
           autoComplete="email"
           placeholder="you@example.com"
           aria-invalid={!!errors.email}
-          className="h-9"
+          className="h-10"
           required
         />
         {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
@@ -71,7 +71,7 @@ export function RegisterForm({ next }: { next: string }) {
           autoComplete="tel"
           placeholder="0300 1234567"
           aria-invalid={!!errors.phone}
-          className="h-9"
+          className="h-10"
         />
         {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
       </div>
@@ -84,15 +84,15 @@ export function RegisterForm({ next }: { next: string }) {
           type="password"
           autoComplete="new-password"
           aria-invalid={!!errors.password}
-          className="h-9"
+          className="h-10"
           required
         />
         <p className="text-xs text-muted-foreground">At least 8 characters.</p>
         {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
       </div>
 
-      <Button type="submit" size="lg" className="mt-1 w-full" disabled={pending}>
-        {pending && <Loader2 className="animate-spin" />}
+      <Button type="submit" size="lg" className="mt-1 w-full shadow-sm" disabled={pending}>
+        {pending ? <Loader2 className="animate-spin" /> : <UserPlus />}
         Create account
       </Button>
 

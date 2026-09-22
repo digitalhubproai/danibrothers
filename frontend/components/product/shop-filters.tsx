@@ -145,7 +145,7 @@ export function ShopFilters({ facets }: { facets: ShopFacets }) {
             aria-label="Minimum price"
             onBlur={(e) => setSingle("min", e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none tnum transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none tnum transition-all duration-300 focus:border-brand focus:ring-3 focus:ring-brand/15 hover:border-brand/40"
           />
           <span className="text-muted-foreground">–</span>
           <input
@@ -156,7 +156,7 @@ export function ShopFilters({ facets }: { facets: ShopFacets }) {
             aria-label="Maximum price"
             onBlur={(e) => setSingle("max", e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none tnum transition-colors focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none tnum transition-all duration-300 focus:border-brand focus:ring-3 focus:ring-brand/15 hover:border-brand/40"
           />
         </div>
       </FilterSection>

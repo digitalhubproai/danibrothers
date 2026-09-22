@@ -33,23 +33,28 @@ export function AdminSidebar() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "group relative flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-300",
               active
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                ? "bg-brand text-white shadow-md shadow-brand/25"
+                : "text-muted-foreground hover:bg-brand/5 hover:text-foreground",
             )}
           >
-            <Icon className="size-4" />
+            <Icon
+              className={cn(
+                "size-4 transition-transform duration-300",
+                active ? "" : "group-hover:scale-110",
+              )}
+            />
             {label}
           </Link>
         )
       })}
 
-      <div className="my-2 border-t border-border" />
+      <div className="my-3 border-t border-border" />
 
       <Link
         href="/"
-        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-accent hover:text-foreground"
       >
         <ExternalLink className="size-4" />
         View storefront
@@ -58,7 +63,7 @@ export function AdminSidebar() {
       <form action={logoutAction}>
         <button
           type="submit"
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-300 hover:bg-destructive/5 hover:text-destructive"
         >
           <LogOut className="size-4" />
           Sign out

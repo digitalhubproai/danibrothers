@@ -1,25 +1,33 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowRight, MessageCircle } from "lucide-react"
+import {
+  ArrowRight,
+  MessageCircle,
+  Scale,
+  Sparkles,
+  Wrench,
+  Banknote,
+  HeartHandshake,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Section, SectionHeading } from "@/components/site/section"
+import { PageHero } from "@/components/site/page-hero"
 import { Stats } from "@/components/home/stats"
 import { TrustStrip } from "@/components/home/trust-strip"
-import { Reveal } from "@/components/motion/reveal"
+import { SellDeviceCTA } from "@/components/home/sell-device-cta"
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal"
 import { site, whatsappLink } from "@/lib/site"
-import { formatPrice } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "About us",
-  description:
-    "Dani Brothers has been buying, selling and repairing computers from Hafeez Centre, Lahore since 2009.",
+  description: `Dani Brothers has been buying, selling and repairing computers from Gulshan-e-Maymar, Karachi since ${site.since}.`,
 }
 
 const TIMELINE = [
   {
     year: "2009",
     title: "One counter, second-hand stock",
-    body: "We started buying and reselling used laptops from a single counter in Hafeez Centre. Word of mouth did the rest.",
+    body: "We started buying and reselling used laptops from a single counter. Word of mouth did the rest.",
   },
   {
     year: "2014",
@@ -29,7 +37,7 @@ const TIMELINE = [
   {
     year: "2019",
     title: "Corporate supply",
-    body: "Offices started buying from us in batches. We now supply and maintain fleets for a number of small firms across Lahore.",
+    body: "Offices started buying from us in batches. We now supply and maintain fleets for a number of small firms across Karachi.",
   },
   {
     year: "Today",
@@ -40,67 +48,73 @@ const TIMELINE = [
 
 const PROMISES = [
   {
+    icon: Scale,
     title: "Honest grading",
     body: "If a machine has a scuff, a tired battery or a replaced keyboard, you hear about it before you pay — not after.",
+    color: "text-brand",
+    bg: "bg-brand-subtle",
   },
   {
+    icon: Banknote,
     title: "We buy too",
     body: "Upgrading? We take trade-ins and buy outright, working or faulty. Bring it in for a same-day valuation.",
+    color: "text-success",
+    bg: "bg-success-subtle",
   },
   {
+    icon: Wrench,
     title: "Repairs that last",
     body: "Our bench handles screen replacements, storage upgrades, thermal service and board-level work on most consumer machines.",
+    color: "text-warning",
+    bg: "bg-warning-subtle",
   },
   {
+    icon: HeartHandshake,
     title: "No pressure",
     body: "Come in, use the machine, ask questions. We would rather sell you the right laptop than the fastest one.",
+    color: "text-brand",
+    bg: "bg-brand-subtle",
   },
 ]
 
 export default function AboutPage() {
   return (
     <>
-      <div className="border-b border-border bg-card">
-        <div className="container-page py-14 md:py-20">
-          <p className="text-eyebrow text-brand">Since {site.since}</p>
-          <h1 className="text-display mt-4 max-w-4xl text-balance">
-            A computer shop that answers the phone.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            {site.name} has been buying, selling and repairing machines from {site.address} for
-            over a decade. No showroom gloss — just a counter, a bench, and a stock list we
-            actually know.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button size="lg" className="h-11 px-5 text-sm" nativeButton={false} render={<Link href="/shop" />}>
-              Browse the shop
-              <ArrowRight />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-11 px-5 text-sm"
-              nativeButton={false}
-              render={
-                <a
-                  href={whatsappLink(`Hi ${site.name}, I have a question.`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              }
-            >
-              <MessageCircle />
-              Talk to us
-            </Button>
-          </div>
-        </div>
-      </div>
+      <PageHero
+        eyebrow={`Since ${site.since}`}
+        title="A computer shop that answers the phone."
+        description={`${site.name} has been buying, selling and repairing machines from ${site.address} for over a decade. No showroom gloss — just a counter, a bench, and a stock list we actually know.`}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "About us" }]}
+      >
+        <Button size="lg" className="h-11 px-5 text-sm" nativeButton={false} render={<Link href="/shop" />}>
+          Browse the shop
+          <ArrowRight />
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-11 px-5 text-sm"
+          nativeButton={false}
+          render={
+            <a
+              href={whatsappLink(`Hi ${site.name}, I have a question.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          }
+        >
+          <MessageCircle />
+          Talk to us
+        </Button>
+      </PageHero>
 
       <Section>
-        <Stats />
+        <Reveal>
+          <Stats />
+        </Reveal>
       </Section>
 
+      {/* Story + timeline */}
       <Section className="pt-0">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr] lg:gap-16">
           <div>
@@ -120,21 +134,42 @@ export default function AboutPage() {
               in or order online. No haggling required, though we won&apos;t be offended if you
               try.
             </p>
+
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/5 px-4 py-2 text-xs font-semibold text-brand">
+              <Sparkles className="size-3.5" />
+              Same bench, same standards since {site.since}
+            </div>
           </div>
 
-          <ol className="relative flex flex-col gap-8 border-l border-border pl-8">
+          <ol className="relative flex flex-col gap-0">
             {TIMELINE.map((entry, index) => (
               <Reveal key={entry.year} delay={index * 0.06}>
-                <li className="relative">
+                <li className="relative flex gap-5 pb-8 last:pb-0">
+                  {/* Rail */}
+                  {index < TIMELINE.length - 1 && (
+                    <span
+                      aria-hidden
+                      className="absolute top-7 left-[11px] h-full w-px bg-gradient-to-b from-brand/40 via-border to-transparent"
+                    />
+                  )}
+
                   <span
                     aria-hidden
-                    className="absolute top-1.5 -left-[2.28rem] size-2.5 rounded-full border-2 border-background bg-brand"
-                  />
-                  <p className="text-eyebrow text-brand tnum">{entry.year}</p>
-                  <h3 className="mt-1.5 text-base font-semibold">{entry.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {entry.body}
-                  </p>
+                    className="relative z-10 mt-1 grid size-6 shrink-0 place-items-center rounded-full border-2 border-background bg-brand shadow-sm shadow-brand/25"
+                  >
+                    <span className="size-1.5 rounded-full bg-white" />
+                  </span>
+
+                  <div className="group flex-1 rounded-xl border border-border/60 bg-card p-4 transition-all duration-300 hover:border-brand/25 hover:shadow-sm hover:shadow-brand/5 sm:p-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-eyebrow text-brand tnum">{entry.year}</span>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                    <h3 className="mt-2 text-sm font-semibold sm:text-base">{entry.title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                      {entry.body}
+                    </p>
+                  </div>
                 </li>
               </Reveal>
             ))}
@@ -142,6 +177,7 @@ export default function AboutPage() {
         </div>
       </Section>
 
+      {/* Promise cards */}
       <Section className="pt-0">
         <SectionHeading
           eyebrow="What we stand behind"
@@ -149,65 +185,47 @@ export default function AboutPage() {
           description="Four things we will not compromise on, whatever the machine costs."
         />
 
-        <div className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+        <Stagger className="grid gap-4 sm:grid-cols-2">
           {PROMISES.map((promise) => (
-            <div key={promise.title} className="bg-card p-6">
-              <h3 className="text-sm font-semibold">{promise.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{promise.body}</p>
-            </div>
+            <StaggerItem key={promise.title}>
+              <div className="group relative h-full overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/25 hover:shadow-lg hover:shadow-brand/5">
+                <div
+                  aria-hidden
+                  className="absolute -top-16 -right-16 h-32 w-32 rounded-full bg-brand/5 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                />
+                <div className="relative flex items-start gap-4">
+                  <span
+                    className={`grid size-11 shrink-0 place-items-center rounded-xl ${promise.bg} ${promise.color} transition-transform duration-300 group-hover:scale-110`}
+                  >
+                    <promise.icon className="size-5" strokeWidth={1.75} />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold tracking-tight">{promise.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {promise.body}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </Section>
 
+      {/* Trust strip */}
       <Section className="pt-0">
+        <SectionHeading
+          eyebrow="Why people come back"
+          title="What you get with every order"
+          description="Bench-tested stock, written warranty, and payment only when the machine is in your hands."
+        />
         <TrustStrip />
       </Section>
 
+      {/* Final CTA — same as homepage */}
       <Section className="pt-0">
         <Reveal>
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-primary px-6 py-12 text-primary-foreground md:px-12 md:py-16">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-[0.14]"
-              style={{
-                backgroundImage:
-                  "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
-                backgroundSize: "22px 22px",
-              }}
-            />
-            <div className="relative max-w-2xl">
-              <h2 className="text-display-sm text-balance">Come and see the stock</h2>
-              <p className="mt-4 text-base leading-relaxed text-primary-foreground/80">
-                Photographs only get you so far with a laptop. The shop is open {site.hours} —
-                bring a USB drive and test anything you like before you buy it.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="h-11 px-5 text-sm"
-                  nativeButton={false}
-                  render={<Link href="/contact" />}
-                >
-                  Find the shop
-                  <ArrowRight />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="h-11 px-5 text-sm text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                  nativeButton={false}
-                  render={<Link href="/contact#sell" />}
-                >
-                  Sell your device
-                </Button>
-              </div>
-              <p className="mt-6 text-xs text-primary-foreground/60">
-                Financing available on orders over {formatPrice(150_000)} · Trade-ins accepted
-                against any purchase
-              </p>
-            </div>
-          </div>
+          <SellDeviceCTA />
         </Reveal>
       </Section>
     </>
