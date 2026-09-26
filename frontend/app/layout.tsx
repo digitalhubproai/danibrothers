@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next"
+import type { Metadata } from "next"
 import { Geist, Geist_Mono, Sora } from "next/font/google"
 import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/sonner"
@@ -70,9 +70,6 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   manifest: "/manifest.json",
-}
-
-export const viewport: Viewport = {
   themeColor: "#1d4ed8",
 }
 
