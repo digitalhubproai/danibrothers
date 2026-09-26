@@ -20,12 +20,14 @@ export function ProductThumb({
   sizes,
   className,
   priority = false,
+  fit = "cover",
 }: {
   src: string | null
   alt: string
   sizes: string
   className?: string
   priority?: boolean
+  fit?: "cover" | "contain"
 }) {
   const [failed, setFailed] = useState(false)
 
@@ -41,7 +43,7 @@ export function ProductThumb({
       sizes={sizes}
       priority={priority}
       onError={() => setFailed(true)}
-      className={cn("object-cover", className)}
+      className={cn(fit === "contain" ? "object-contain" : "object-cover", className)}
     />
   )
 }

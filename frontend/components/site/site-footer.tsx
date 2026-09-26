@@ -7,7 +7,6 @@ import { Mail, MapPin, Phone, Clock, ArrowUpRight, Truck, Shield, BadgeCheck, Me
 import { Logo } from "@/components/site/logo"
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/site/social-icons"
 import { site, whatsappLink } from "@/lib/site"
-import { cn } from "@/lib/utils"
 
 const shopLinks = [
   { href: "/shop?category=laptops", label: "Laptops" },
@@ -230,7 +229,7 @@ export function SiteFooter() {
             <span className="text-border">·</span>
             <span>Bank transfer</span>
             <span className="text-border">·</span>
-            <span>7-day returns on unopened items</span>
+            <span>15-day returns on unused items</span>
           </div>
         </div>
       </div>

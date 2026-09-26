@@ -34,59 +34,70 @@ export function ProductCardClient({
           className,
         )}
       >
-        {/* Top accent line */}
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand via-blue-400 to-brand opacity-0 scale-x-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-x-100 z-30" />
+        {/* Top accent line — wipes in from the left */}
+        <div className="absolute inset-x-0 top-0 z-30 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-brand via-blue-400 to-brand opacity-0 transition-all duration-500 ease-out group-hover:scale-x-100 group-hover:opacity-100" />
+
+        {/* Brand-blue light sweep across the card on hover */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 -left-1/3 z-40 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-brand/25 to-transparent opacity-0 transition-all duration-[900ms] ease-out group-hover:left-[130%] group-hover:opacity-100"
+        />
 
         {/* Image area */}
-        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+        <div className="relative aspect-square overflow-hidden bg-muted">
           <Link href={`/product/${product.slug}`} className="absolute inset-0 z-10" aria-label={product.name}>
             <ProductThumb
               src={product.primaryImage}
               alt={product.name}
               priority={priority}
               sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw"
-              className="transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-105"
+              className="transition-transform duration-700 ease-out group-hover:scale-110"
             />
           </Link>
 
-          {/* Hover overlay with quick view */}
-          <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-all duration-500 group-hover:opacity-100 flex items-end justify-center pb-4">
+          {/* Hover overlay — frosted, reveals the Quick View pill */}
+          <div className="pointer-events-none absolute inset-0 z-20 flex items-end justify-center bg-gradient-to-t from-black/55 via-black/10 to-transparent pb-4 opacity-0 backdrop-blur-[2px] transition-opacity duration-500 ease-out group-hover:opacity-100">
             <Link
               href={`/product/${product.slug}`}
-              className="inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-black shadow-lg transition-all duration-300 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-white"
+              className="inline-flex translate-y-5 scale-95 items-center gap-2 rounded-full bg-white/95 px-5 py-2.5 text-xs font-bold tracking-wide text-black opacity-0 shadow-xl shadow-black/25 ring-1 ring-white/40 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100 hover:gap-3 hover:bg-brand hover:text-white"
             >
-              <Eye className="size-3.5" />
+              <Eye className="size-4" />
               Quick View
+              <span className="text-[0.65rem] font-semibold opacity-60">↗</span>
             </Link>
           </div>
 
-          {/* Wishlist + Compare buttons - top right on hover */}
-          <div className="absolute right-2 top-2 z-30 flex flex-col gap-1.5 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0">
-            <WishlistButton
-              product={{
-                productId: product.id,
-                slug: product.slug,
-                name: product.name,
-                brand: product.brand,
-                price: product.price,
-                image: product.primaryImage,
-                condition: product.condition,
-              }}
-            />
-            <CompareButton
-              product={{
-                productId: product.id,
-                slug: product.slug,
-                name: product.name,
-                brand: product.brand,
-                price: product.price,
-                image: product.primaryImage,
-                condition: product.condition,
-                compareAtPrice: product.compareAtPrice,
-                stock: product.stock,
-                specs: product.specs,
-              }}
-            />
+          {/* Wishlist + Compare buttons — slide out one after the other */}
+          <div className="absolute right-2 top-2 z-40 flex flex-col gap-1.5">
+            <div className="translate-x-3 opacity-0 transition-all duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100">
+              <WishlistButton
+                product={{
+                  productId: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  brand: product.brand,
+                  price: product.price,
+                  image: product.primaryImage,
+                  condition: product.condition,
+                }}
+              />
+            </div>
+            <div className="translate-x-3 opacity-0 transition-all delay-75 duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100">
+              <CompareButton
+                product={{
+                  productId: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  brand: product.brand,
+                  price: product.price,
+                  image: product.primaryImage,
+                  condition: product.condition,
+                  compareAtPrice: product.compareAtPrice,
+                  stock: product.stock,
+                  specs: product.specs,
+                }}
+              />
+            </div>
           </div>
 
           {/* Condition badge */}
@@ -141,9 +152,8 @@ export function ProductCardClient({
                   className={cn(
                     "size-1.5 rounded-full shrink-0",
                     stock.tone === "success" && "bg-emerald-500",
-                    stock.tone === "warning" && "bg-amber-500",
+                    stock.tone === "warning" && "bg-amber-500 animate-pulse",
                     stock.tone === "destructive" && "bg-red-500",
-                    stock.tone === "warning" && "animate-pulse",
                   )}
                 />
                 <span className="hidden sm:inline">{stock.label}</span>

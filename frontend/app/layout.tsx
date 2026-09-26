@@ -1,5 +1,5 @@
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import type { Metadata, Viewport } from "next"
+import { Geist, Geist_Mono, Sora } from "next/font/google"
 import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/sonner"
 import { SiteHeader } from "@/components/site/site-header"
@@ -25,6 +25,15 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+})
+
+// Display face for big marketing headlines (hero). Loaded separately so body
+// copy stays on Geist.
+const sora = Sora({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["600", "700", "800"],
 })
 
 export const metadata: Metadata = {
@@ -61,6 +70,9 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   manifest: "/manifest.json",
+}
+
+export const viewport: Viewport = {
   themeColor: "#1d4ed8",
 }
 
@@ -75,7 +87,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

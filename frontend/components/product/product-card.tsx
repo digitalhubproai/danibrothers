@@ -1,12 +1,7 @@
-import Link from "next/link"
-import { ConditionBadge } from "@/components/product/condition-badge"
-import { ProductThumb } from "@/components/product/product-thumb"
 import { ProductCardClient } from "@/components/product/product-card-client"
-import { discountPercent, formatPrice } from "@/lib/format"
+import { discountPercent } from "@/lib/format"
 import { stockState, type ProductView } from "@/lib/products"
-import { whatsappLink, site } from "@/lib/site"
 import { cn } from "@/lib/utils"
-import { Eye, MessageCircle } from "lucide-react"
 
 export function ProductCard({
   product,

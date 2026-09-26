@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import type { ReactNode } from "react"
 import { PackageSearch, MessageCircle, X } from "lucide-react"
 import { ShopFilters } from "@/components/product/shop-filters"
-import { InfiniteProductGrid } from "@/components/product/infinite-product-grid"
+import { ProductGrid } from "@/components/product/product-card"
+import { ShopPagination } from "@/components/product/shop-pagination"
 import { ShopToolbar } from "@/components/product/shop-toolbar"
 import { PageHero } from "@/components/site/page-hero"
 import { Button } from "@/components/ui/button"
@@ -232,22 +232,28 @@ export default async function ShopPage({
               </div>
             </div>
           ) : (
-            <div className="mt-6">
-              <InfiniteProductGrid
-                initialProducts={products}
-                initialPage={page}
-                initialPageCount={pageCount}
-                searchParams={{
-                  ...(category ? { category } : {}),
-                  ...(q ? { q } : {}),
-                  ...(sort ? { sort } : {}),
-                  ...(brands.length ? { brand: brands[0] } : {}),
-                  ...(conditions.length ? { condition: conditions[0] } : {}),
-                  ...(minPrice != null ? { min: String(minPrice) } : {}),
-                  ...(maxPrice != null ? { max: String(maxPrice) } : {}),
+            <>
+              <div className="mt-6">
+                <ProductGrid products={products} priorityCount={4} />
+              </div>
+              <ShopPagination
+                page={page}
+                pageCount={pageCount}
+                buildHref={(p) => {
+                  const params = new URLSearchParams()
+                  if (category) params.set("category", category)
+                  if (q) params.set("q", q)
+                  brands.forEach((b) => params.append("brand", b))
+                  conditions.forEach((c) => params.append("condition", c))
+                  if (minPrice != null) params.set("min", String(minPrice))
+                  if (maxPrice != null) params.set("max", String(maxPrice))
+                  if (sort !== "newest") params.set("sort", sort)
+                  if (p > 1) params.set("page", String(p))
+                  const qs = params.toString()
+                  return qs ? `/shop?${qs}` : "/shop"
                 }}
               />
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -255,102 +261,3 @@ export default async function ShopPage({
   )
 }
 
-function Pagination({
-  page,
-  pageCount,
-  params,
-}: {
-  page: number
-  pageCount: number
-  params: SearchParams
-}) {
-  function hrefFor(target: number) {
-    const next = new URLSearchParams()
-    for (const [key, value] of Object.entries(params)) {
-      if (key === "page") continue
-      if (value == null) continue
-      for (const v of Array.isArray(value) ? value : [value]) next.append(key, v)
-    }
-    if (target > 1) next.set("page", String(target))
-    const qs = next.toString()
-    return qs ? `/shop?${qs}` : "/shop"
-  }
-
-  // A window around the current page, so 20 pages don't render 20 buttons.
-  const windowSize = 2
-  const start = Math.max(1, Math.min(page - windowSize, pageCount - windowSize * 2))
-  const end = Math.min(pageCount, Math.max(page + windowSize, windowSize * 2 + 1))
-  const pages: number[] = []
-  for (let i = start; i <= end; i++) pages.push(i)
-
-  return (
-    <nav aria-label="Pagination" className="mt-12 flex items-center justify-center gap-1">
-      <StepButton href={page > 1 ? hrefFor(page - 1) : null}>Previous</StepButton>
-
-      {start > 1 && (
-        <>
-          <PageLink href={hrefFor(1)} label="1" />
-          {start > 2 && <span className="px-1 text-muted-foreground">…</span>}
-        </>
-      )}
-
-      {pages.map((n) => (
-        <PageLink key={n} href={hrefFor(n)} label={String(n)} active={n === page} />
-      ))}
-
-      {end < pageCount && (
-        <>
-          {end < pageCount - 1 && <span className="px-1 text-muted-foreground">…</span>}
-          <PageLink href={hrefFor(pageCount)} label={String(pageCount)} />
-        </>
-      )}
-
-      <StepButton href={page < pageCount ? hrefFor(page + 1) : null}>Next</StepButton>
-    </nav>
-  )
-}
-
-/**
- * A disabled step is a real <button disabled> (so it is properly inert and
- * announced as unavailable); an enabled step is a link, so the result stays a
- * shareable URL and works with middle-click.
- */
-function StepButton({ href, children }: { href: string | null; children: ReactNode }) {
-  if (!href) {
-    return (
-      <Button variant="outline" size="sm" disabled>
-        {children}
-      </Button>
-    )
-  }
-  return (
-    <Button variant="outline" size="sm" nativeButton={false} render={<Link href={href} scroll />}>
-      {children}
-    </Button>
-  )
-}
-
-function PageLink({
-  href,
-  label,
-  active,
-}: {
-  href: string
-  label: string
-  active?: boolean
-}) {
-  return (
-    <Link
-      href={href}
-      scroll
-      aria-current={active ? "page" : undefined}
-      className={
-        active
-          ? "grid size-8 place-items-center rounded-lg bg-primary text-sm font-medium text-primary-foreground tnum"
-          : "grid size-8 place-items-center rounded-lg text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground tnum"
-      }
-    >
-      {label}
-    </Link>
-  )
-}

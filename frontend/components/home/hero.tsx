@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { site, whatsappLink } from "@/lib/site"
+import { cn } from "@/lib/utils"
 import { motion, AnimatePresence, useReducedMotion } from "motion/react"
 import { useEffect, useState, useCallback, useRef } from "react"
 
@@ -25,7 +26,6 @@ const SLIDES = [
     image: "/images/pc with laptop.png",
     badge: { icon: <Sparkles className="size-3.5" />, text: "Fresh Stock" },
     headline: "Laptops You Can Trust at Prices That Make Sense",
-    highlight: "Prices That Make Sense",
     subhead:
       "Every machine tested and warranted. Buy in store or delivered anywhere in Pakistan.",
     ctaPrimary: { label: "Browse laptops", href: "/shop" },
@@ -41,7 +41,6 @@ const SLIDES = [
     image: "/images/cmputers.png",
     badge: { icon: <Zap className="size-3.5" />, text: "Power Builds" },
     headline: "Desktops Monitors and Gear for Every Setup",
-    highlight: "Every Setup",
     subhead:
       "From budget builds to pro rigs, we have got the parts and the know-how.",
     ctaPrimary: { label: "Shop computers", href: "/shop?category=desktops" },
@@ -57,7 +56,6 @@ const SLIDES = [
     image: "/images/accessories.png",
     badge: { icon: <Shield className="size-3.5" />, text: "Genuine Parts" },
     headline: "Accessories Built to Last and Priced Right",
-    highlight: "Priced Right",
     subhead:
       "Cables, cases, keyboards and more. Genuine parts at shop prices.",
     ctaPrimary: {
@@ -73,57 +71,37 @@ const SLIDES = [
   },
 ]
 
-function HighlightedHeadline({
+function AnimatedHeadline({
   text,
-  highlight,
   delay = 0,
 }: {
   text: string
-  highlight: string
   delay?: number
 }) {
   const words = text.split(" ")
-  const highlightWords = new Set(
-    highlight
-      .toLowerCase()
-      .split(/\s+/)
-      .map((w) => w.replace(/[.,!?]/g, "")),
-  )
 
   return (
     <span className="block" aria-label={text}>
-      {words.map((word, i) => {
-        const plain = word.toLowerCase().replace(/[.,!?]/g, "")
-        const isHighlighted = highlightWords.has(plain)
-        return (
-          <span
-            key={`${word}-${i}`}
-            className="mr-[0.28em] inline-block overflow-hidden align-bottom"
+      {words.map((word, i) => (
+        <span
+          key={`${word}-${i}`}
+          className="mr-[0.28em] inline-block overflow-hidden align-bottom [perspective:600px]"
+        >
+          <motion.span
+            className="inline-block text-white"
+            aria-hidden
+            initial={{ y: "120%", rotateX: -35 }}
+            animate={{ y: 0, rotateX: 0 }}
+            transition={{
+              duration: 0.75,
+              delay: delay + i * 0.045,
+              ease: [0.22, 1, 0.36, 1],
+            }}
           >
-            <motion.span
-              className="inline-block"
-              aria-hidden
-              initial={{ y: "120%", rotateX: -35 }}
-              animate={{ y: 0, rotateX: 0 }}
-              transition={{
-                duration: 0.75,
-                delay: delay + i * 0.045,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-            >
-              <span
-                className={
-                  isHighlighted
-                    ? "bg-gradient-to-r from-white via-white to-brand/70 bg-clip-text text-transparent drop-shadow-[0_0_24px_rgba(29,78,216,0.35)]"
-                    : "text-white"
-                }
-              >
-                {word}
-              </span>
-            </motion.span>
-          </span>
-        )
-      })}
+            {word}
+          </motion.span>
+        </span>
+      ))}
     </span>
   )
 }
@@ -216,109 +194,56 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black to-transparent"
       />
 
-      {/* Slide indicators — top right */}
+      {/* Slide indicators — numbered progress bars */}
       <div className="absolute top-6 right-4 z-30 sm:right-8 sm:top-8">
-        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl">
+        <div className="flex items-start gap-4 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 shadow-[0_20px_50px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:gap-5">
           {SLIDES.map((item, i) => {
             const isActive = i === current
-            const size = 44
-            const strokeWidth = 2
-            const radius = (size - strokeWidth) / 2
-            const circumference = 2 * Math.PI * radius
-
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setCurrent(i)}
-                className="group relative flex items-center gap-2 rounded-full transition-all duration-500 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 aria-label={`Go to slide ${i + 1}: ${item.label}`}
                 aria-current={isActive ? "true" : undefined}
+                className="group flex flex-col items-start gap-1.5 focus-visible:outline-none"
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="heroActivePill"
-                    className="absolute inset-0 rounded-full border border-white/15 bg-white/[0.08] backdrop-blur-xl"
-                    transition={{ type: "spring", stiffness: 380, damping: 34 }}
-                  />
-                )}
-
-                <div
-                  className="relative flex items-center justify-center rounded-full"
-                  style={{ width: size, height: size }}
-                >
-                  <svg
-                    width={size}
-                    height={size}
-                    className="pointer-events-none absolute inset-0 -rotate-90"
-                    aria-hidden
-                  >
-                    <circle
-                      cx={size / 2}
-                      cy={size / 2}
-                      r={radius}
-                      stroke="rgba(255,255,255,0.12)"
-                      strokeWidth={strokeWidth}
-                      fill="transparent"
-                    />
-                    {isActive && !reduceMotion && (
-                      <motion.circle
-                        key={current}
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        stroke="#ffffff"
-                        strokeWidth={strokeWidth}
-                        fill="transparent"
-                        strokeDasharray={circumference}
-                        initial={{ strokeDashoffset: circumference }}
-                        animate={{ strokeDashoffset: 0 }}
-                        transition={{
-                          duration: paused || reduceMotion ? 0 : SLIDE_MS / 1000,
-                          ease: "linear",
-                        }}
-                        strokeLinecap="round"
-                        className="drop-shadow-[0_0_8px_rgba(255,255,255,0.75)]"
-                      />
-                    )}
-                    {isActive && (paused || reduceMotion) && (
-                      <circle
-                        cx={size / 2}
-                        cy={size / 2}
-                        r={radius}
-                        stroke="#ffffff"
-                        strokeWidth={strokeWidth}
-                        fill="transparent"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={circumference * 0.55}
-                        strokeLinecap="round"
-                        className="drop-shadow-[0_0_8px_rgba(255,255,255,0.75)]"
-                      />
-                    )}
-                  </svg>
-
+                <span className="flex items-baseline gap-1.5">
                   <span
-                    className={`relative z-10 font-mono text-xs font-semibold tracking-wider transition-colors duration-300 ${
-                      isActive
-                        ? "text-white"
-                        : "text-white/35 group-hover:text-white/75"
-                    }`}
+                    className={cn(
+                      "font-mono text-sm font-bold tracking-wider transition-colors duration-300",
+                      isActive ? "text-white" : "text-white/35 group-hover:text-white/70",
+                    )}
                   >
                     {item.num}
                   </span>
-                </div>
-
-                {isActive && (
-                  <motion.span
-                    initial={{ opacity: 0, x: -6 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -6 }}
-                    transition={{ duration: 0.35, ease: "easeOut" }}
-                    className="hidden pr-4 text-[0.72rem] font-medium tracking-wide text-white/90 uppercase select-none md:inline-block"
+                  <span
+                    className={cn(
+                      "text-[0.6rem] font-semibold tracking-[0.14em] uppercase transition-colors duration-300",
+                      isActive ? "text-white/90" : "text-white/30 group-hover:text-white/60",
+                    )}
                   >
                     {item.label}
-                  </motion.span>
-                )}
+                  </span>
+                </span>
+
+                {/* Progress track */}
+                <span className="relative block h-[3px] w-12 overflow-hidden rounded-full bg-white/15 sm:w-16">
+                  {isActive && !reduceMotion && (
+                    <span
+                      key={`fill-${current}`}
+                      aria-hidden
+                      className="absolute inset-0 origin-left rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.75)]"
+                      style={{
+                        animation: `hero-progress ${SLIDE_MS}ms linear forwards`,
+                        animationPlayState: paused ? "paused" : "running",
+                      }}
+                    />
+                  )}
+                  {isActive && reduceMotion && (
+                    <span aria-hidden className="absolute inset-0 rounded-full bg-white" />
+                  )}
+                </span>
               </button>
             )
           })}
@@ -348,12 +273,8 @@ export function Hero() {
                 </span>
               </motion.div>
 
-              <h1 className="text-[clamp(2.1rem,5vw,3.4rem)] leading-[1.1] font-bold tracking-tight text-balance">
-                <HighlightedHeadline
-                  text={slide.headline}
-                  highlight={slide.highlight}
-                  delay={0.12}
-                />
+              <h1 className="font-display text-[clamp(2.1rem,5vw,3.7rem)] leading-[1.06] font-extrabold tracking-[-0.025em] text-balance">
+                <AnimatedHeadline text={slide.headline} delay={0.12} />
               </h1>
 
               <motion.p

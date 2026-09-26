@@ -16,5 +16,8 @@ export function resolveDatabaseUrl(): string {
   const filePath = raw.slice("file:".length)
   if (path.isAbsolute(filePath)) return raw
 
-  return `file:${path.resolve(process.cwd(), filePath)}`
+  // turbopackIgnore: this is a runtime path resolution for the SQLite file,
+  // not a build-time asset reference — without the hint Turbopack traces (and
+  // deploys) the whole project because of the dynamic process.cwd() call.
+  return `file:${path.resolve(/* turbopackIgnore: true */ process.cwd(), filePath)}`
 }

@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { motion } from "motion/react"
 import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
   ChevronDown,
   Menu,
   Search,
@@ -11,16 +15,18 @@ import {
   User,
   Phone,
   Truck,
-  Laptop,
-  Monitor,
-  Keyboard,
-  Headphones,
-  HardDrive,
-  Cpu,
-  Cable,
+  ShieldCheck,
   Package,
   Heart,
   Camera,
+  Cable,
+  Cpu,
+  HardDrive,
+  Headphones,
+  Keyboard,
+  Laptop,
+  Monitor,
+  MessageCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -55,6 +61,22 @@ const STATIC_LINKS = [
   { href: "/contact", label: "Contact" },
 ]
 
+/* The pill that slides behind whichever nav item is hovered or active.
+ * One layoutId across all items — motion animates it between them. */
+function NavPill({ toneActive }: { toneActive: boolean }) {
+  return (
+    <motion.span
+      layoutId="nav-pill"
+      aria-hidden
+      transition={{ type: "spring", stiffness: 450, damping: 36 }}
+      className={cn(
+        "absolute inset-0 rounded-full",
+        toneActive ? "bg-brand/10" : "bg-accent",
+      )}
+    />
+  )
+}
+
 export function SiteHeader({
   categories,
   user,
@@ -71,14 +93,27 @@ export function SiteHeader({
   const [shopOpen, setShopOpen] = useState(false)
   const [shopMounted, setShopMounted] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [hoverNav, setHoverNav] = useState<string | null>(null)
   const shopRef = useRef<HTMLDivElement>(null)
+  const progressBarRef = useRef<HTMLDivElement>(null)
   const shopCloseTimer = useRef<number | null>(null)
+
+  // Which item the sliding pill sits behind, and whether it wears the brand
+  // tone (current page / open menu) or the plain hover tone.
+  const activeKey = pathname.startsWith("/shop")
+    ? "shop"
+    : STATIC_LINKS.find((l) => pathname === l.href)?.href ?? null
+  const pillKey = hoverNav ?? (shopOpen ? "shop" : activeKey)
+  const toneActive =
+    pillKey !== null &&
+    (pillKey === activeKey || (shopOpen && pillKey === "shop"))
 
   const openShop = () => {
     if (shopCloseTimer.current) {
       window.clearTimeout(shopCloseTimer.current)
       shopCloseTimer.current = null
     }
+    setShopMounted(true)
     setShopOpen(true)
   }
 
@@ -88,16 +123,28 @@ export function SiteHeader({
   }
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8)
+      const bar = progressBarRef.current
+      if (bar) {
+        const max = document.documentElement.scrollHeight - window.innerHeight
+        bar.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`
+      }
+    }
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  useEffect(() => {
+  // Close menus on route change — adjusted during render (React's "derive
+  // state from props" pattern) instead of an effect, which causes a cascade.
+  const [lastPathname, setLastPathname] = useState(pathname)
+  if (lastPathname !== pathname) {
+    setLastPathname(pathname)
     setShopOpen(false)
     setMobileOpen(false)
-  }, [pathname])
+    setHoverNav(null)
+  }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setShopOpen(false)
@@ -114,13 +161,11 @@ export function SiteHeader({
     }
   }, [shopMounted])
 
+  // Keep the panel mounted briefly after close so it can fade out.
   useEffect(() => {
-    if (shopOpen) {
-      setShopMounted(true)
-    } else {
-      const timer = setTimeout(() => setShopMounted(false), 200)
-      return () => clearTimeout(timer)
-    }
+    if (shopOpen) return
+    const timer = setTimeout(() => setShopMounted(false), 200)
+    return () => clearTimeout(timer)
   }, [shopOpen])
 
   useEffect(() => {
@@ -144,65 +189,164 @@ export function SiteHeader({
         <div className="container-page flex h-16 items-center gap-4">
           <Logo />
 
-          {/* Desktop nav */}
-          <nav className="ml-2 hidden items-center gap-0.5 lg:flex">
+          {/* Desktop nav — sliding pill highlight */}
+          <nav
+            className="ml-1 hidden items-center gap-1 lg:flex"
+            onMouseLeave={() => setHoverNav(null)}
+          >
             <div
               className="relative"
               ref={shopRef}
-              onMouseEnter={openShop}
-              onMouseLeave={scheduleCloseShop}
+              onMouseEnter={() => {
+                setHoverNav("shop")
+                openShop()
+              }}
+              onMouseLeave={() => {
+                setHoverNav(null)
+                scheduleCloseShop()
+              }}
             >
               <button
                 type="button"
-                onClick={() => setShopOpen((v) => !v)}
+                onClick={() => {
+                  if (shopOpen) setShopOpen(false)
+                  else openShop()
+                }}
                 onFocus={openShop}
                 aria-expanded={shopOpen}
                 aria-haspopup="true"
                 className={cn(
-                  "relative inline-flex h-9 items-center gap-1.5 px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                  "after:absolute after:bottom-1.5 after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-brand after:transition-all after:duration-300",
-                  shopOpen && "text-foreground after:w-4/5",
-                  pathname.startsWith("/shop") && "text-foreground after:w-4/5",
+                  "relative inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-colors duration-200",
+                  pillKey === "shop" && toneActive
+                    ? "text-brand"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Package className="size-4" />
-                Shop
-                <ChevronDown
-                  className={cn("size-3.5 transition-transform duration-300", shopOpen && "rotate-180")}
-                />
+                {pillKey === "shop" && <NavPill toneActive={toneActive} />}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <Package className="size-4" />
+                  Shop
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 transition-transform duration-300",
+                      shopOpen && "rotate-180",
+                    )}
+                  />
+                </span>
               </button>
 
               {shopMounted && (
+                /* Full-width mega-menu — breaks out of the container to span
+                   the viewport, like the big retail sites do. */
                 <div
                   className={cn(
-                    "absolute left-0 top-full z-50 mt-2 w-[34rem] rounded-2xl border border-border/60 bg-popover p-3 shadow-[0_24px_48px_-16px_rgb(0,0,0/0.12)] transition-all duration-300 ease-out",
+                    // NB: the header's backdrop-blur makes it the containing
+                    // block for position:fixed, so top-16 = flush under the
+                    // header bar at any scroll position. Full viewport width
+                    // via inset-x-0 relative to the (full-width) header.
+                    "fixed inset-x-0 top-16 z-50 overflow-hidden border-b border-border/60 bg-background/95 shadow-[0_32px_80px_-24px_rgb(0,0,0/0.35)] backdrop-blur-2xl transition-all duration-300 ease-out",
                     shopOpen
-                      ? "pointer-events-auto opacity-100 blur-none translate-y-0"
-                      : "pointer-events-none opacity-0 blur-[4px] -translate-y-1",
+                      ? "pointer-events-auto translate-y-0 opacity-100"
+                      : "pointer-events-none -translate-y-4 opacity-0",
                   )}
                 >
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {categories.map((category) => (
+                  {/* brand wash along the top edge */}
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -top-24 left-1/2 h-48 w-[55rem] -translate-x-1/2 rounded-full bg-brand/10 blur-3xl"
+                  />
+
+                  <div className="container-page relative grid gap-6 py-6 lg:grid-cols-[1.6fr_1fr]">
+                    {/* Column 1 — categories */}
+                    <div>
+                      <p className="text-eyebrow mb-3 text-muted-foreground/60">
+                        Shop by category
+                      </p>
+                      <div className="grid grid-cols-2 gap-1">
+                        {categories.map((category, i) => (
+                          <Link
+                            key={category.slug}
+                            href={`/shop?category=${category.slug}`}
+                            style={
+                              shopOpen
+                                ? { animationDelay: `${60 + i * 30}ms` }
+                                : undefined
+                            }
+                            className={cn(
+                              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ease-out hover:bg-brand/[0.07]",
+                              shopOpen && "mega-rise",
+                            )}
+                          >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-brand/30 group-hover:bg-brand/10 group-hover:text-brand">
+                              {CATEGORY_ICONS[category.slug] ?? (
+                                <ChevronDown className="size-4" />
+                              )}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate transition-colors group-hover:text-brand">
+                              {category.name}
+                            </span>
+                            <ArrowUpRight className="size-3.5 shrink-0 -translate-x-1 -translate-y-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
+                          </Link>
+                        ))}
+                      </div>
                       <Link
-                        key={category.slug}
-                        href={`/shop?category=${category.slug}`}
-                        className="group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200 hover:bg-accent"
+                        href="/shop"
+                        className="group mt-2.5 inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all duration-300 hover:shadow-brand/40 hover:brightness-110"
                       >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground transition-all duration-300 group-hover:bg-brand/10 group-hover:text-brand group-hover:scale-105">
-                          {CATEGORY_ICONS[category.slug] ?? <ChevronDown className="size-4" />}
-                        </span>
-                        <span className="transition-colors group-hover:text-foreground">{category.name}</span>
+                        Browse everything
+                        <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </Link>
-                    ))}
-                  </div>
-                  <div className="mt-2.5 border-t border-border/50 pt-2.5">
-                    <Link
-                      href="/shop"
-                      className="group flex items-center justify-center gap-2 rounded-xl bg-brand/5 px-3 py-2.5 text-sm font-semibold text-brand transition-all duration-300 hover:bg-brand hover:text-white"
+                    </div>
+
+                    {/* Column 2 — help card */}
+                    <div
+                      style={shopOpen ? { animationDelay: "200ms" } : undefined}
+                      className={cn(
+                        "relative flex flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-brand via-blue-700 to-indigo-900 p-5 text-white shadow-xl shadow-brand/20",
+                        shopOpen && "mega-rise",
+                      )}
                     >
-                      Browse everything
-                      <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
-                    </Link>
+                      <div className="pointer-events-none absolute -right-10 -bottom-10 size-36 rounded-full bg-white/10 blur-2xl" />
+                      <div className="relative">
+                        <p className="text-eyebrow text-white/60">
+                          Not sure what to buy?
+                        </p>
+                        <p className="mt-2 text-[0.95rem] leading-snug font-semibold text-balance">
+                          Tell us your budget and use — we&apos;ll shortlist
+                          the right machine, same day.
+                        </p>
+                        <ul className="mt-3 space-y-1.5 text-xs text-white/75">
+                          <li className="flex items-center gap-2">
+                            <Check className="size-3.5 text-emerald-300" />
+                            Honest advice, no pushy sales
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="size-3.5 text-emerald-300" />
+                            Testing &amp; warranty included
+                          </li>
+                        </ul>
+                      </div>
+                      <div className="relative mt-4 flex flex-col gap-2">
+                        <a
+                          href={whatsappLink(
+                            "Hi Dani Brothers, I need help choosing a product.",
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-white text-sm font-semibold text-brand transition-transform duration-200 hover:scale-[1.02] active:scale-100"
+                        >
+                          <MessageCircle className="size-4" />
+                          Chat on WhatsApp
+                        </a>
+                        <a
+                          href={site.phoneHref}
+                          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-white/30 text-sm font-semibold text-white/90 transition-colors hover:bg-white/10"
+                        >
+                          <Phone className="size-4" />
+                          Call the shop
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -212,13 +356,16 @@ export function SiteHeader({
               <Link
                 key={link.href}
                 href={link.href}
+                onMouseEnter={() => setHoverNav(link.href)}
                 className={cn(
-                  "relative inline-flex h-9 items-center px-3 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                  "after:absolute after:bottom-1.5 after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-brand after:transition-all after:duration-300",
-                  pathname === link.href && "text-brand after:w-4/5",
+                  "relative inline-flex h-9 items-center rounded-full px-3.5 text-sm font-medium transition-colors duration-200",
+                  pillKey === link.href && toneActive
+                    ? "text-brand"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {link.label}
+                {pillKey === link.href && <NavPill toneActive={toneActive} />}
+                <span className="relative z-10">{link.label}</span>
               </Link>
             ))}
           </nav>
@@ -226,10 +373,15 @@ export function SiteHeader({
           <div className="ml-auto flex items-center gap-1">
             <SearchAutocomplete className="hidden md:flex" />
 
+            <span
+              aria-hidden
+              className="mx-1.5 hidden h-5 w-px bg-border lg:block"
+            />
+
             <Button
               variant="ghost"
               size="icon"
-              className="hidden md:inline-flex"
+              className="hidden rounded-full transition-transform duration-200 hover:scale-105 active:scale-95 md:inline-flex"
               nativeButton={false}
               render={
                 <Link href={user ? "/account" : "/login"} aria-label={user ? "Your account" : "Sign in"} />
@@ -247,13 +399,19 @@ export function SiteHeader({
               render={
                 <Link href="/wishlist" aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} items` : ""}`} />
               }
-              className="relative"
+              className="relative rounded-full transition-transform duration-200 hover:scale-105 active:scale-95"
             >
               <Heart />
               {wishlistCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid min-w-[1.125rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[0.625rem] font-bold leading-4 text-white tnum shadow-lg shadow-red-500/25">
+                <motion.span
+                  key={wishlistCount}
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 26 }}
+                  className="absolute -right-0.5 -top-0.5 grid min-w-[1.125rem] place-items-center rounded-full bg-red-500 px-1 py-0.5 text-[0.625rem] font-bold leading-4 text-white tnum shadow-lg shadow-red-500/25"
+                >
                   {wishlistCount > 99 ? "99+" : wishlistCount}
-                </span>
+                </motion.span>
               )}
             </Button>
 
@@ -261,21 +419,27 @@ export function SiteHeader({
               variant="ghost"
               size="icon"
               onClick={openCart}
-              className="relative"
+              className="relative rounded-full transition-transform duration-200 hover:scale-105 active:scale-95"
               aria-label={`Open cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
             >
               <ShoppingBag />
               {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid min-w-[1.125rem] place-items-center rounded-full bg-brand px-1 py-0.5 text-[0.625rem] font-bold leading-4 text-white tnum shadow-lg shadow-brand/25">
+                <motion.span
+                  key={cartCount}
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 520, damping: 26 }}
+                  className="absolute -right-0.5 -top-0.5 grid min-w-[1.125rem] place-items-center rounded-full bg-brand px-1 py-0.5 text-[0.625rem] font-bold leading-4 text-white tnum shadow-lg shadow-brand/25"
+                >
                   {cartCount > 99 ? "99+" : cartCount}
-                </span>
+                </motion.span>
               )}
             </Button>
 
             {/* Mobile menu */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger
-                render={<Button variant="ghost" size="icon" className="lg:hidden" />}
+                render={<Button variant="ghost" size="icon" className="rounded-full lg:hidden" />}
                 aria-label="Open menu"
               >
                 <Menu />
@@ -362,31 +526,64 @@ export function SiteHeader({
             </Sheet>
           </div>
         </div>
+
+        {/* Reading progress — grows as you scroll the page */}
+        <div
+          ref={progressBarRef}
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r from-brand via-blue-400 to-brand transition-transform duration-150 ease-out"
+        />
       </header>
     </>
   )
 }
 
 function AnnouncementBar() {
-  return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 text-white">
-      {/* Subtle shimmer */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent" />
+  const items = [
+    {
+      icon: <Truck className="size-3" />,
+      text: `FREE delivery on orders over ${formatPrice(FREE_SHIPPING_THRESHOLD)}`,
+    },
+    {
+      icon: <ShieldCheck className="size-3" />,
+      text: "6-month warranty on every machine",
+    },
+    {
+      icon: <Package className="size-3" />,
+      text: "Cash on Delivery — nationwide",
+    },
+    {
+      icon: <Phone className="size-3" />,
+      text: site.phone,
+    },
+  ]
 
-      <div className="container-page relative flex h-9 items-center justify-center gap-2.5 text-xs font-medium">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-emerald-400">
-          <Truck className="size-3" />
-          FREE DELIVERY
-        </span>
-        <span className="text-white/50">on orders over {formatPrice(FREE_SHIPPING_THRESHOLD)}</span>
-        <span className="hidden text-white/20 sm:inline">·</span>
-        <a
-          href={site.phoneHref}
-          className="hidden items-center gap-1.5 text-white/50 transition-colors hover:text-white sm:inline-flex"
-        >
-          <Phone className="size-3" />
-          {site.phone}
-        </a>
+  return (
+    <div className="relative h-9 overflow-hidden bg-zinc-950 text-white">
+      {/* Edge fades so items melt into the bar */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-zinc-950 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-zinc-950 to-transparent" />
+
+      {/* Two identical halves; the -50% loop makes it seamless */}
+      <div className="flex h-full w-max animate-marquee items-center">
+        {[0, 1].map((copy) => (
+          <div
+            key={copy}
+            className="flex h-full items-center"
+            aria-hidden={copy === 1 ? "true" : undefined}
+          >
+            {items.map((item, i) => (
+              <span
+                key={i}
+                className="flex items-center gap-2 whitespace-nowrap px-6 text-xs font-medium tracking-wide text-white/90"
+              >
+                <span className="text-emerald-400">{item.icon}</span>
+                {item.text}
+                <span className="ml-4 text-[0.55rem] text-white/25">✦</span>
+              </span>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   )

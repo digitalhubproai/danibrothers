@@ -21,7 +21,7 @@ export default async function CheckoutPage() {
     : null
 
   return (
-    <div className="container-page py-10 md:py-14">
+    <>
       <PageHero
         compact
         eyebrow="Secure checkout"
@@ -45,8 +45,9 @@ export default async function CheckoutPage() {
         </div>
       </PageHero>
 
+      <div className="container-page py-10 md:py-14">
       {/* Step indicator */}
-      <div className="mt-8 flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="grid size-7 place-items-center rounded-full bg-brand text-xs font-bold text-white">1</span>
           <span className="text-xs font-semibold text-foreground">Delivery</span>
@@ -66,6 +67,7 @@ export default async function CheckoutPage() {
       <Reveal className="mt-8">
         <CheckoutForm user={profile ?? null} />
       </Reveal>
-    </div>
+      </div>
+    </>
   )
 }

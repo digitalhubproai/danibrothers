@@ -9,12 +9,30 @@ import { ConditionBadge } from "@/components/product/condition-badge"
 import { ProductThumb } from "@/components/product/product-thumb"
 import { PageHero } from "@/components/site/page-hero"
 import { Button } from "@/components/ui/button"
+import { Reveal } from "@/components/motion/reveal"
+import { useCartHydrated } from "@/components/site/use-cart-count"
 
 export default function WishlistPage() {
+  const hydrated = useCartHydrated()
   const items = useWishlist((s) => s.items)
   const remove = useWishlist((s) => s.remove)
   const clear = useWishlist((s) => s.clear)
   const add = useCart((s) => s.add)
+
+  // The store rehydrates from localStorage after mount; without this the page
+  // flashes the empty state for a frame.
+  if (!hydrated) {
+    return (
+      <div className="container-page py-20">
+        <div className="h-8 w-40 animate-pulse rounded-md bg-muted" />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -43,6 +61,7 @@ export default function WishlistPage() {
 
       <div className="container-page py-10 md:py-14">
       {items.length === 0 ? (
+        <Reveal>
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-20 text-center">
           <span className="grid size-14 place-items-center rounded-full bg-brand-subtle text-brand">
             <Heart className="size-6" />
@@ -56,6 +75,7 @@ export default function WishlistPage() {
             <ArrowRight />
           </Button>
         </div>
+        </Reveal>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((item) => (
@@ -64,7 +84,7 @@ export default function WishlistPage() {
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
               {/* Image */}
-              <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+              <div className="relative aspect-square overflow-hidden bg-muted">
                 <Link href={`/product/${item.slug}`} className="absolute inset-0 z-10">
                   <ProductThumb
                     src={item.image}
