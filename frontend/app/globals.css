@@ -264,6 +264,20 @@
   }
 }
 
+/* Stats card: rotating conic ring on hover. Registered as an angle so the
+   gradient's start direction can animate (plain keyframes can't touch it). */
+@property --orbit-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-orbit {
+  to {
+    --orbit-angle: 360deg;
+  }
+}
+
 @utility animate-marquee {
   animation: marquee-x 32s linear infinite;
 }
