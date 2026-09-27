@@ -16,8 +16,10 @@ export function resolveDatabaseUrl(): string {
   const filePath = raw.slice("file:".length)
   if (path.isAbsolute(filePath)) return raw
 
-  // turbopackIgnore: this is a runtime path resolution for the SQLite file,
-  // not a build-time asset reference — without the hint Turbopack traces (and
-  // deploys) the whole project because of the dynamic process.cwd() call.
-  return `file:${path.resolve(/* turbopackIgnore: true */ process.cwd(), filePath)}`
+  // Statically scope the filesystem access to the `prisma/` subfolder — the
+  // literal segment tells Turbopack to trace just that directory (including
+  // the .db file) into the deployment instead of the whole project. Relative
+  // URLs arrive as "./prisma/dev.db" or "dev.db"; both mean the same file.
+  const rel = filePath.replace(/^\.?[/\\]/, "").replace(/^prisma[/\\]/, "")
+  return `file:${path.resolve(process.cwd(), "prisma", rel)}`
 }
