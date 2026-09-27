@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   description: site.description,
   keywords: [
     "laptops Pakistan",
-    "computer shop Lahore",
+    "computer shop Karachi",
     "used laptops",
     "refurbished laptops",
     "computer accessories",
