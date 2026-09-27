@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useRef, type ReactNode } from "react"
 import { motion, useScroll, useTransform } from "motion/react"
 import { BadgeCheck, Lock, MapPin, Phone } from "lucide-react"
@@ -49,9 +48,11 @@ export function AuthShell({
       <div className="container-page relative grid flex-1 gap-12 py-12 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-20">
         {/* Left — form */}
         <div className="mx-auto w-full max-w-sm">
-          <Link href="/" className="inline-block lg:hidden">
+          {/* Logo links home on its own — wrapping it in another Link would
+              nest <a> inside <a> and break hydration. */}
+          <div className="lg:hidden">
             <Logo />
-          </Link>
+          </div>
 
           <div className="mt-8 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/5 px-3.5 py-1.5 text-xs font-semibold text-brand lg:mt-0">
             <Lock className="size-3.5" />
