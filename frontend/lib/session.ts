@@ -1,10 +1,10 @@
 /**
  * The session cookie's name, on its own.
  *
- * `lib/auth.ts` pulls in Prisma and bcryptjs to hash passwords and read users.
- * The proxy only needs to know which cookie to look at, and it runs on every
- * matched request before rendering — so it imports this instead, and the
- * database client never enters the proxy's module graph.
+ * `lib/auth.ts` pulls in bcryptjs and jose. The proxy only needs to know which
+ * cookie to look at, and it runs on every matched request before rendering —
+ * so it imports this instead, and the auth module never enters the proxy's
+ * module graph.
  */
 export const SESSION_COOKIE_NAME = "db_session"
 

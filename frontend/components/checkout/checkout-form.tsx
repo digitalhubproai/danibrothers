@@ -11,8 +11,6 @@ import {
   CreditCard,
   FileText,
   MessageCircle,
-  Check,
-  Truck,
   Banknote,
   ArrowRight,
 } from "lucide-react"
@@ -25,7 +23,7 @@ import { useCart, cartSubtotal } from "@/lib/cart"
 import { useCartHydrated } from "@/components/site/use-cart-count"
 import { placeOrderAction } from "@/app/actions/orders"
 import { formatPrice } from "@/lib/format"
-import { site, shippingFor, FREE_SHIPPING_THRESHOLD, whatsappLink } from "@/lib/site"
+import { site, SHIPPING_FLAT, whatsappLink } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/lib/validation"
 
@@ -46,10 +44,9 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
   )
 
   const subtotal = cartSubtotal(lines)
-  const shipping = shippingFor(subtotal)
+  const shipping = SHIPPING_FLAT
   const total = subtotal + shipping
   const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {}
-  const freeShippingLeft = FREE_SHIPPING_THRESHOLD - subtotal
 
   if (!hydrated) {
     return (
@@ -101,25 +98,6 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
               <AlertCircle className="size-4" />
             </span>
             <p className="text-sm font-medium text-red-600">{state.message}</p>
-          </div>
-        )}
-
-        {/* Guest banner */}
-        {!user && (
-          <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3.5">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
-              <Lock className="size-4" />
-            </span>
-            <p className="text-sm text-muted-foreground">
-              Checking out as a guest.{" "}
-              <Link
-                href="/login?next=%2Fcheckout"
-                className="font-semibold text-brand transition-colors hover:text-foreground"
-              >
-                Sign in
-              </Link>{" "}
-              to keep this order in your history.
-            </p>
           </div>
         )}
 
@@ -281,22 +259,6 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
               ))}
             </ul>
 
-            {/* Free shipping progress */}
-            {freeShippingLeft > 0 && (
-              <div className="mt-5 rounded-xl bg-emerald-500/5 border border-emerald-500/10 p-3">
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
-                  <Truck className="size-3.5" />
-                  Add {formatPrice(freeShippingLeft)} more for free delivery
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-500/10">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
-                    style={{ width: `${Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Totals */}
             <dl className="mt-5 flex flex-col gap-3 border-t border-border/50 pt-5 text-sm">
               <div className="flex justify-between">
@@ -305,13 +267,7 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground/70">Delivery</dt>
-                <dd className="font-semibold tnum">
-                  {shipping === 0 ? (
-                    <span className="text-emerald-600 font-bold">FREE</span>
-                  ) : (
-                    formatPrice(shipping)
-                  )}
-                </dd>
+                <dd className="font-semibold tnum">{formatPrice(shipping)}</dd>
               </div>
               <div className="flex items-baseline justify-between border-t border-border/50 pt-4">
                 <dt className="font-bold text-foreground">Total</dt>

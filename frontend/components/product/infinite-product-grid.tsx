@@ -7,8 +7,7 @@ import { ProductCardSkeleton } from "@/components/product/product-skeleton"
 import type { ProductView } from "@/lib/product-types"
 import { stockState } from "@/lib/product-types"
 import { discountPercent } from "@/lib/format"
-import { Loader2, ChevronDown, Package } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { ChevronDown, Package } from "lucide-react"
 
 type APIProduct = {
   id: string
@@ -91,7 +90,7 @@ export function InfiniteProductGrid({
   const [page, setPage] = useState(initialPage)
   const [pageCount, setPageCount] = useState(initialPageCount)
   const [loading, setLoading] = useState(false)
-  const [loadingBatch, setLoadingBatch] = useState(false)
+  const [, setLoadingBatch] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
 

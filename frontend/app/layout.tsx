@@ -76,7 +76,9 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // The header shows the category menu and the signed-in state, so both are
   // resolved here rather than fetched again by each page.
-  const [categories, user] = await Promise.all([getCategories(), getSession()])
+  // The category menu is chrome, not content: if the API is unreachable the
+  // header renders without it rather than taking every page down with a 503.
+  const [categories, user] = await Promise.all([getCategories().catch(() => []), getSession()])
   const navCategories = categories.map((c) => ({ name: c.name, slug: c.slug }))
 
   return (

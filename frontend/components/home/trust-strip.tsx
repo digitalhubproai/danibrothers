@@ -15,7 +15,7 @@ const POINTS = [
   {
     icon: BadgeCheck,
     title: "Warranty, in writing",
-    body: "Brand new stock carries manufacturer warranty. Refurbished units get 6 months with us. Pre-owned gets a 15-day check window.",
+    body: "Brand new stock carries manufacturer warranty. Pre-owned gets a 15-day check window.",
     color: "text-success",
     bg: "bg-success-subtle",
     glow: "group-hover:shadow-success/20",

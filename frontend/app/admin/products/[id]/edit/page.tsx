@@ -1,7 +1,14 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { notFound } from "next/navigation"
+import { X } from "lucide-react"
+import { AdminHeader } from "@/components/admin/admin-header"
 import { ProductForm } from "@/components/admin/product-form"
-import { prisma } from "@/lib/db"
+import { Button } from "@/components/ui/button"
+import { ApiError, api } from "@/lib/api"
+import type { ApiCategory } from "@/lib/api-types"
+import { sessionToken } from "@/lib/auth"
+import type { ProductRow } from "@/lib/products"
 import { jsonToLines, jsonToPairs } from "@/lib/validation"
 
 export const metadata: Metadata = { title: "Edit product" }
@@ -16,23 +23,35 @@ export default async function EditProductPage({
   const { id } = await params
 
   const [product, categories] = await Promise.all([
-    prisma.product.findUnique({ where: { id } }),
-    prisma.category.findMany({
-      orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true },
-    }),
+    api
+      .get<ProductRow>(`/api/admin/products/${encodeURIComponent(id)}`, await sessionToken())
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 404) return null
+        throw error
+      }),
+    api.get<ApiCategory[]>("/api/categories"),
   ])
 
   if (!product) notFound()
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">{product.name}</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Editing <span className="font-mono text-xs">/product/{product.slug}</span>
-        </p>
-      </div>
+      <AdminHeader
+        eyebrow="Catalogue"
+        title={product.name}
+        description={
+          <>
+            Editing <span className="font-mono text-xs">/product/{product.slug}</span> ·{" "}
+            {product.stock <= 0 ? "out of stock" : `${product.stock} in stock`}
+          </>
+        }
+        actions={
+          <Button variant="outline" nativeButton={false} render={<Link href="/admin/products" />}>
+            <X />
+            Back to products
+          </Button>
+        }
+      />
 
       <ProductForm
         categories={categories}

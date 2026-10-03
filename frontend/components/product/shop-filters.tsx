@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useTransition, useState, type ReactNode } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { X, SlidersHorizontal, ChevronDown, RotateCcw } from "lucide-react"
+import { SlidersHorizontal, ChevronDown } from "lucide-react"
 import { CONDITIONS, CONDITION_LABEL } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -223,7 +223,10 @@ function RadioRow({
   onChange: () => void
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent">
+    <label
+      onClick={onChange}
+      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent"
+    >
       <span
         className={cn(
           "flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
@@ -252,7 +255,10 @@ function CheckRow({
   onChange: () => void
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent">
+    <label
+      onClick={onChange}
+      className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent"
+    >
       <span
         className={cn(
           "flex size-4 shrink-0 items-center justify-center rounded border-2 transition-colors",

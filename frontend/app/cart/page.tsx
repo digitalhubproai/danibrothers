@@ -10,7 +10,7 @@ import { PageHero } from "@/components/site/page-hero"
 import { Reveal } from "@/components/motion/reveal"
 import { useCartHydrated } from "@/components/site/use-cart-count"
 import { formatPrice } from "@/lib/format"
-import { FREE_SHIPPING_THRESHOLD, shippingFor } from "@/lib/site"
+import { SHIPPING_FLAT } from "@/lib/site"
 
 export default function CartPage() {
   const hydrated = useCartHydrated()
@@ -20,8 +20,7 @@ export default function CartPage() {
   const clear = useCart((s) => s.clear)
 
   const subtotal = cartSubtotal(lines)
-  const shipping = shippingFor(subtotal)
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+  const shipping = SHIPPING_FLAT
 
   if (!hydrated) {
     return (
@@ -171,32 +170,9 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Delivery</dt>
-                <dd className="font-medium tnum">
-                  {shipping === 0 ? (
-                    <span className="text-success">Free</span>
-                  ) : (
-                    formatPrice(shipping)
-                  )}
-                </dd>
+                <dd className="font-medium tnum">{formatPrice(shipping)}</dd>
               </div>
             </dl>
-
-            {remaining > 0 && (
-              <div className="mt-4 rounded-lg bg-muted p-3">
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Add <span className="font-medium text-foreground">{formatPrice(remaining)}</span>{" "}
-                  more for free delivery.
-                </p>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-border">
-                  <div
-                    className="h-full rounded-full bg-brand transition-[width] duration-500"
-                    style={{
-                      width: `${Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
 
             <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
               <span className="text-sm font-medium">Total</span>

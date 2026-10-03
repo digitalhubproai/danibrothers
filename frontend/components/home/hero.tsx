@@ -43,7 +43,7 @@ const SLIDES = [
     headline: "Desktops Monitors and Gear for Every Setup",
     subhead:
       "From budget builds to pro rigs, we have got the parts and the know-how.",
-    ctaPrimary: { label: "Shop computers", href: "/shop?category=desktops" },
+    ctaPrimary: { label: "Shop computers", href: "/shop?category=desktop-pcs" },
     ctaSecondary: {
       label: "What's available?",
       href: whatsappLink("What desktop computers do you have in stock?"),
@@ -325,7 +325,6 @@ export function Hero() {
           <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-white/10 pt-5 sm:mt-8 sm:flex sm:flex-wrap sm:gap-x-8 sm:gap-y-3 sm:pt-6">
             {[
               { value: `Since ${site.since}`, label: "Trusted in Karachi" },
-              { value: "6-month", label: "Warranty" },
               { value: "Nationwide", label: "Delivery" },
               { value: "COD", label: "Available" },
             ].map(({ value, label }) => (

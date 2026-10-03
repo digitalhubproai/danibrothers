@@ -10,7 +10,7 @@
 export type FieldErrors<T extends string = string> = Partial<Record<T, string>>
 
 export type ActionResult =
-  | { ok: true; message?: string; redirectTo?: string }
+  | { ok: true; message?: string; redirectTo?: string; data?: Record<string, string> }
   | { ok: false; message: string; fieldErrors?: Record<string, string> }
 
 export function str(form: FormData, key: string): string {

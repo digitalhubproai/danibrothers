@@ -1,20 +1,31 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { CheckCircle2, Pencil, Plus, Search, Star, Trash2 } from "lucide-react"
+import {
+  CheckCircle2,
+  PackageSearch,
+  Pencil,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { EmptyState } from "@/components/admin/admin-empty"
+import { CELL_CLASS, ROW_CLASS, TableWrap, Th } from "@/components/admin/admin-table"
 import { Button } from "@/components/ui/button"
 import { ConditionBadge } from "@/components/product/condition-badge"
 import { ProductThumb } from "@/components/product/product-thumb"
 import { deleteProductAction, toggleFeaturedAction, updateStockAction } from "@/app/actions/admin"
-import { prisma } from "@/lib/db"
+import { api } from "@/lib/api"
+import type { AdminProductRow, ApiCategory } from "@/lib/api-types"
+import { sessionToken } from "@/lib/auth"
 import { formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = { title: "Products" }
 
 export const dynamic = "force-dynamic"
-
-const PER_PAGE = 20
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -35,27 +46,21 @@ export default async function AdminProductsPage({
   const saved = first(sp.saved) === "1"
   const page = Math.max(1, Number(first(sp.page)) || 1)
 
-  const where = {
-    ...(category ? { category: { slug: category } } : {}),
-    ...(lowOnly ? { stock: { lte: 3 } } : {}),
-    ...(q
-      ? { OR: [{ name: { contains: q } }, { brand: { contains: q } }, { slug: { contains: q } }] }
-      : {}),
-  }
+  const filters = new URLSearchParams()
+  if (q) filters.set("q", q)
+  if (category) filters.set("category", category)
+  if (lowOnly) filters.set("filter", "low")
+  filters.set("page", String(page))
 
-  const [products, total, categories] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: { category: { select: { name: true, slug: true } } },
-      orderBy: [{ stock: "asc" }, { updatedAt: "desc" }],
-      skip: (page - 1) * PER_PAGE,
-      take: PER_PAGE,
-    }),
-    prisma.product.count({ where }),
-    prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
+  const [listing, categories] = await Promise.all([
+    api.get<{ products: AdminProductRow[]; total: number; pageCount: number }>(
+      `/api/admin/products?${filters.toString()}`,
+      await sessionToken(),
+    ),
+    api.get<ApiCategory[]>("/api/categories"),
   ])
 
-  const pageCount = Math.max(1, Math.ceil(total / PER_PAGE))
+  const { products, total, pageCount } = listing
 
   function hrefFor(target: number) {
     const params = new URLSearchParams()
@@ -69,28 +74,39 @@ export default async function AdminProductsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-eyebrow text-brand">Admin</p>
-          <h1 className="mt-2 text-display-sm">Products</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {total} {total === 1 ? "product" : "products"} in the catalogue.
-          </p>
-        </div>
-        <Button nativeButton={false} render={<Link href="/admin/products/new" />} className="shadow-sm">
-          <Plus />
-          New product
-        </Button>
-      </div>
+      <AdminHeader
+        title="Products"
+        description={
+          total === 1
+            ? "One product in the catalogue."
+            : `${total} products in the catalogue — edit prices, photos and stock from here.`
+        }
+        actions={
+          <Button nativeButton={false} render={<Link href="/admin/products/new" />}>
+            <Plus />
+            New product
+          </Button>
+        }
+        meta={
+          lowOnly || q || category ? (
+            <p className="text-xs font-medium text-muted-foreground">
+              Showing a filtered view · <Link href="/admin/products" className="text-brand underline-offset-4 hover:underline">clear filters</Link>
+            </p>
+          ) : undefined
+        }
+      />
 
       {saved && (
-        <p className="flex items-center gap-2 rounded-lg bg-success-subtle px-3.5 py-2.5 text-sm text-success">
+        <p className="flex items-center gap-2 rounded-xl border border-success/30 bg-success-subtle px-4 py-3 text-sm font-medium text-success">
           <CheckCircle2 className="size-4 shrink-0" />
           Saved. The storefront has been updated.
         </p>
       )}
 
-      <form className="flex flex-wrap items-center gap-2" action="/admin/products">
+      <form
+        className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-card p-3 shadow-sm"
+        action="/admin/products"
+      >
         <div className="relative min-w-52 flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -115,7 +131,7 @@ export default async function AdminProductsPage({
           ))}
         </select>
 
-        <label className="flex h-9 items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm">
+        <label className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm transition-colors hover:border-brand/30">
           <input
             type="checkbox"
             name="filter"
@@ -137,14 +153,21 @@ export default async function AdminProductsPage({
       </form>
 
       {products.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center text-sm text-muted-foreground">
-          Nothing matches. Try a different search, or reset the filters.
-        </p>
+        <EmptyState
+          icon={PackageSearch}
+          title="Nothing matches"
+          description="Try a different search, or reset the filters to see the whole catalogue."
+          action={
+            <Button variant="outline" nativeButton={false} render={<Link href="/admin/products" />}>
+              Reset filters
+            </Button>
+          }
+        />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border/60 shadow-sm">
+        <TableWrap className="min-w-0">
           <table className="w-full min-w-[46rem] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-border bg-card text-left">
+              <tr className="border-b border-border bg-muted/40 text-left">
                 <Th>Product</Th>
                 <Th>Category</Th>
                 <Th className="text-right">Price</Th>
@@ -163,20 +186,17 @@ export default async function AdminProductsPage({
                 }
 
                 return (
-                  <tr
-                    key={product.id}
-                    className="border-b border-border bg-card transition-colors last:border-0 hover:bg-brand-subtle/30"
-                  >
-                    <td className="px-4 py-3">
+                  <tr key={product.id} className={ROW_CLASS}>
+                    <td className={CELL_CLASS}>
                       <div className="flex items-center gap-3">
-                        <span className="relative size-10 shrink-0 overflow-hidden rounded-md border border-border">
-                          <ProductThumb src={image} alt="" sizes="2.5rem" />
+                        <span className="relative size-11 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+                          <ProductThumb src={image} alt="" sizes="2.75rem" />
                         </span>
                         <span className="min-w-0">
                           <span className="flex items-center gap-1.5">
                             <Link
                               href={`/admin/products/${product.id}/edit`}
-                              className="line-clamp-1 font-medium hover:underline"
+                              className="line-clamp-1 font-medium hover:text-brand hover:underline"
                             >
                               {product.name}
                             </Link>
@@ -195,9 +215,13 @@ export default async function AdminProductsPage({
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-muted-foreground">{product.category.name}</td>
+                    <td className={CELL_CLASS}>
+                      <span className="inline-flex items-center rounded-lg bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                        {product.category.name}
+                      </span>
+                    </td>
 
-                    <td className="px-4 py-3 text-right tnum">
+                    <td className={cn(CELL_CLASS, "text-right tnum")}>
                       <span className="font-medium">{formatPrice(product.price)}</span>
                       {product.compareAtPrice && (
                         <span className="mt-0.5 block text-xs text-muted-foreground line-through">
@@ -206,7 +230,7 @@ export default async function AdminProductsPage({
                       )}
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className={CELL_CLASS}>
                       <form action={updateStockAction} className="flex items-center justify-center gap-1.5">
                         <input type="hidden" name="id" value={product.id} />
                         <input
@@ -233,7 +257,7 @@ export default async function AdminProductsPage({
                       </form>
                     </td>
 
-                    <td className="px-4 py-3">
+                    <td className={CELL_CLASS}>
                       <div className="flex items-center justify-end gap-1">
                         <form action={toggleFeaturedAction}>
                           <input type="hidden" name="id" value={product.id} />
@@ -274,7 +298,7 @@ export default async function AdminProductsPage({
               })}
             </tbody>
           </table>
-        </div>
+        </TableWrap>
       )}
 
       {pageCount > 1 && (
@@ -304,18 +328,5 @@ function StepLink({ href, children }: { href: string | null; children: ReactNode
     <Button variant="outline" size="sm" nativeButton={false} render={<Link href={href} />}>
       {children}
     </Button>
-  )
-}
-
-function Th({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <th
-      className={cn(
-        "px-4 py-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase",
-        className,
-      )}
-    >
-      {children}
-    </th>
   )
 }

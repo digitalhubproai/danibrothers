@@ -1,10 +1,10 @@
 /**
  * Sort options, deliberately kept in their own file.
  *
- * `lib/products.ts` imports the Prisma client, so anything that imports *any
- * value* from it drags `lib/db.ts` → Prisma → `better-sqlite3` (a native
- * addon that needs `fs`) into that module's graph. A client component doing
- * that fails the build with "Module not found: Can't resolve 'fs'".
+ * `lib/products.ts` may grow server-only dependencies (a database driver, for
+ * example), which would drag `fs` into any module that imports it. A client
+ * component doing that fails the build with "Module not found: Can't resolve
+ * 'fs'".
  *
  * This module has no imports at all, so it is safe from a Client Component.
  * `lib/products.ts` re-exports these for server-side callers, which is why

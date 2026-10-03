@@ -1,10 +1,15 @@
 import type { Metadata } from "next"
-import type { ReactNode } from "react"
-import Link from "next/link"
-import { Check, Mail, MessageSquare, Phone } from "lucide-react"
+import { Check, Inbox, Mail, MessageSquare, Phone, Smartphone } from "lucide-react"
+import { AdminHeader } from "@/components/admin/admin-header"
+import { EmptyState } from "@/components/admin/admin-empty"
+import { FilterTab, FilterTabs } from "@/components/admin/admin-tabs"
+import { Initials } from "@/components/admin/admin-avatar"
 import { Button } from "@/components/ui/button"
+import { Stagger, StaggerItem } from "@/components/motion/reveal"
 import { toggleInquiryAction } from "@/app/actions/admin"
-import { prisma } from "@/lib/db"
+import { api } from "@/lib/api"
+import type { AdminInquiryList } from "@/lib/api-types"
+import { sessionToken } from "@/lib/auth"
 import { formatDateTime } from "@/lib/format"
 import { whatsappLink } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -43,177 +48,156 @@ export default async function AdminInquiriesPage({
   const sp = await searchParams
   const show = first(sp.show) === "handled" ? "handled" : "open"
 
-  const inquiries = await prisma.inquiry.findMany({
-    where: { handled: show === "handled" },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  })
+  const listing = await api.get<AdminInquiryList>(
+    `/api/admin/inquiries?show=${show}`,
+    await sessionToken(),
+  )
 
-  const [openCount, handledCount] = await Promise.all([
-    prisma.inquiry.count({ where: { handled: false } }),
-    prisma.inquiry.count({ where: { handled: true } }),
-  ])
+  const { inquiries, openCount, handledCount } = listing
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <p className="text-eyebrow text-brand">Admin</p>
-        <h1 className="mt-2 text-display-sm">Inquiries</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Leads from the contact form and the sell-your-device page.
-        </p>
-      </div>
+      <AdminHeader
+        title="Inquiries"
+        description="Leads from the contact form and the sell-your-device page — answer on WhatsApp and tick them off as you go."
+        meta={
+          openCount > 0 && show === "open" ? (
+            <p className="text-xs font-medium text-muted-foreground">
+              <span className="mr-1.5 inline-block size-1.5 rounded-full bg-success align-middle" />
+              {openCount} {openCount === 1 ? "person is" : "people are"} waiting on a reply
+            </p>
+          ) : undefined
+        }
+      />
 
-      <div className="flex w-fit items-center gap-1.5 rounded-xl border border-border/60 bg-card p-1.5">
-        <Tab href="/admin/inquiries" active={show === "open"} count={openCount}>
+      <FilterTabs>
+        <FilterTab href="/admin/inquiries" active={show === "open"} count={openCount}>
           Open
-        </Tab>
-        <Tab href="/admin/inquiries?show=handled" active={show === "handled"} count={handledCount}>
+        </FilterTab>
+        <FilterTab href="/admin/inquiries?show=handled" active={show === "handled"} count={handledCount}>
           Handled
-        </Tab>
-      </div>
+        </FilterTab>
+      </FilterTabs>
 
       {inquiries.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center text-sm text-muted-foreground">
-          {show === "open" ? "Nothing waiting — you're all caught up." : "No handled inquiries yet."}
-        </p>
+        <EmptyState
+          icon={Inbox}
+          title={show === "open" ? "Nothing waiting" : "No handled inquiries yet"}
+          description={
+            show === "open"
+              ? "You're all caught up — new leads will show up here."
+              : "Once you tick a lead off it will be filed here."
+          }
+        />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <Stagger className="flex flex-col gap-3">
           {inquiries.map((inquiry) => {
             const waNumber = digits(inquiry.phone).replace(/^0/, "92")
             return (
-              <li
-                key={inquiry.id}
-                className={cn(
-                  "rounded-2xl border bg-card p-5 shadow-sm transition-all duration-300 hover:border-brand/20",
-                  inquiry.handled
-                    ? "border-border/60 opacity-70"
-                    : "border-border/60 hover:shadow-md hover:shadow-brand/5",
-                )}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold">{inquiry.name}</span>
-                      <span className="rounded-md bg-brand-subtle px-1.5 py-0.5 text-[0.6875rem] font-semibold tracking-wide text-brand uppercase">
-                        {TYPE_LABEL[inquiry.type] ?? inquiry.type}
-                      </span>
-                      {inquiry.handled && (
-                        <span className="rounded-md bg-success-subtle px-1.5 py-0.5 text-[0.6875rem] font-semibold tracking-wide text-success uppercase">
-                          Handled
-                        </span>
-                      )}
+              <StaggerItem key={inquiry.id} y={10}>
+                <article
+                  className={cn(
+                    "rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-colors",
+                    inquiry.handled
+                      ? "opacity-70"
+                      : "hover:border-brand/30",
+                  )}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="flex min-w-0 gap-3.5">
+                      <Initials name={inquiry.name} />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-semibold">{inquiry.name}</span>
+                          <span className="rounded-md bg-brand-subtle px-1.5 py-0.5 text-[0.6875rem] font-semibold tracking-wide text-brand uppercase">
+                            {TYPE_LABEL[inquiry.type] ?? inquiry.type}
+                          </span>
+                          {inquiry.handled && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-success-subtle px-1.5 py-0.5 text-[0.6875rem] font-semibold tracking-wide text-success uppercase">
+                              <Check className="size-3" />
+                              Handled
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <a
+                            href={`tel:${digits(inquiry.phone)}`}
+                            className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                          >
+                            <Phone className="size-3" />
+                            {inquiry.phone}
+                          </a>
+                          {inquiry.email && (
+                            <a
+                              href={`mailto:${inquiry.email}`}
+                              className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                            >
+                              <Mail className="size-3" />
+                              {inquiry.email}
+                            </a>
+                          )}
+                          <span>{formatDateTime(inquiry.createdAt)}</span>
+                        </p>
+
+                        {inquiry.device && (
+                          <p className="mt-3 flex items-start gap-2 rounded-xl bg-muted px-3 py-2 text-sm">
+                            <Smartphone className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                            <span className="min-w-0">
+                              <span className="font-medium">{inquiry.device}</span>
+                              {inquiry.condition && (
+                                <span className="text-muted-foreground">
+                                  {" · "}
+                                  {CONDITION_LABEL[inquiry.condition] ?? inquiry.condition}
+                                </span>
+                              )}
+                            </span>
+                          </p>
+                        )}
+
+                        {inquiry.message && (
+                          <p className="mt-3 border-l-2 border-brand/40 pl-3 text-sm leading-relaxed text-muted-foreground">
+                            {inquiry.message}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
-                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <a
-                        href={`tel:${digits(inquiry.phone)}`}
-                        className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        nativeButton={false}
+                        render={
+                          <a
+                            href={whatsappLink(
+                              `Hi ${inquiry.name}, thanks for getting in touch with Dani Brothers —`,
+                              waNumber,
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        }
                       >
-                        <Phone className="size-3" />
-                        {inquiry.phone}
-                      </a>
-                      {inquiry.email && (
-                        <a
-                          href={`mailto:${inquiry.email}`}
-                          className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                        >
-                          <Mail className="size-3" />
-                          {inquiry.email}
-                        </a>
-                      )}
-                      <span>{formatDateTime(inquiry.createdAt)}</span>
-                    </p>
-
-                    {inquiry.device && (
-                      <p className="mt-2.5 text-sm">
-                        <span className="text-muted-foreground">Device:</span>{" "}
-                        <span className="font-medium">{inquiry.device}</span>
-                        {inquiry.condition && (
-                          <span className="text-muted-foreground">
-                            {" "}
-                            · {CONDITION_LABEL[inquiry.condition] ?? inquiry.condition}
-                          </span>
-                        )}
-                      </p>
-                    )}
-
-                    {inquiry.message && (
-                      <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-                        {inquiry.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      nativeButton={false}
-                      render={
-                        <a
-                          href={whatsappLink(
-                            `Hi ${inquiry.name}, thanks for getting in touch with Dani Brothers —`,
-                            waNumber,
-                          )}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
-                      }
-                    >
-                      <MessageSquare />
-                      Reply
-                    </Button>
-
-                    <form action={toggleInquiryAction}>
-                      <input type="hidden" name="id" value={inquiry.id} />
-                      <Button type="submit" size="sm" variant="ghost">
-                        <Check />
-                        {inquiry.handled ? "Reopen" : "Mark handled"}
+                        <MessageSquare />
+                        Reply
                       </Button>
-                    </form>
+
+                      <form action={toggleInquiryAction}>
+                        <input type="hidden" name="id" value={inquiry.id} />
+                        <Button type="submit" size="sm" variant="ghost">
+                          <Check />
+                          {inquiry.handled ? "Reopen" : "Mark handled"}
+                        </Button>
+                      </form>
+                    </div>
                   </div>
-                </div>
-              </li>
+                </article>
+              </StaggerItem>
             )
           })}
-        </ul>
+        </Stagger>
       )}
     </div>
-  )
-}
-
-function Tab({
-  href,
-  active,
-  count,
-  children,
-}: {
-  href: string
-  active: boolean
-  count: number
-  children: ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-200",
-        active
-          ? "border-brand/30 bg-brand text-white shadow-sm shadow-brand/20"
-          : "border-border bg-card text-muted-foreground hover:border-brand/20 hover:text-foreground",
-      )}
-    >
-      {children}
-      <span
-        className={cn(
-          "rounded px-1 text-[0.625rem] tnum",
-          active ? "bg-white/20" : "bg-muted",
-        )}
-      >
-        {count}
-      </span>
-    </Link>
   )
 }

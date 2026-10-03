@@ -7,10 +7,11 @@ import { cn } from "@/lib/utils"
 /**
  * Product image with a designed fallback.
  *
- * Product photos are hotlinked from Unsplash, so a network hiccup, a removed
- * photo, or a product with no photo yet would otherwise leave a broken-image
- * icon in the middle of the grid. Falling back to a typographic tile keyed off
- * the product name keeps the card looking deliberate rather than broken.
+ * Photos are uploaded by the shop from the admin panel, and a product may have
+ * none yet — a missing, broken or still-empty image would otherwise leave a
+ * broken-image icon in the middle of the grid. Falling back to a typographic
+ * tile keyed off the product name keeps the card looking deliberate rather
+ * than broken.
  *
  * Must be a Client Component because of the error handler.
  */

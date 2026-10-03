@@ -14,8 +14,6 @@ import {
   ShoppingBag,
   User,
   Phone,
-  Truck,
-  ShieldCheck,
   Package,
   Heart,
   Camera,
@@ -37,8 +35,7 @@ import { useCartCount } from "@/components/site/use-cart-count"
 import { useCart } from "@/lib/cart"
 import { useWishlist } from "@/lib/wishlist"
 import { cn } from "@/lib/utils"
-import { site, whatsappLink, FREE_SHIPPING_THRESHOLD } from "@/lib/site"
-import { formatPrice } from "@/lib/format"
+import { site, whatsappLink } from "@/lib/site"
 import type { SessionUser } from "@/lib/auth"
 
 type NavCategory = { name: string; slug: string }
@@ -46,13 +43,17 @@ type NavCategory = { name: string; slug: string }
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   laptops: <Laptop className="size-4" />,
   desktops: <Monitor className="size-4" />,
+  "desktop-pcs": <Monitor className="size-4" />,
   monitors: <Monitor className="size-4" />,
   "keyboards-mice": <Keyboard className="size-4" />,
   storage: <HardDrive className="size-4" />,
   components: <Cpu className="size-4" />,
   "audio-webcams": <Headphones className="size-4" />,
+  audio: <Headphones className="size-4" />,
+  networking: <Cable className="size-4" />,
   accessories: <Cable className="size-4" />,
   "security-cctv": <Camera className="size-4" />,
+  cctv: <Camera className="size-4" />,
 }
 
 const STATIC_LINKS = [
@@ -540,14 +541,6 @@ export function SiteHeader({
 
 function AnnouncementBar() {
   const items = [
-    {
-      icon: <Truck className="size-3" />,
-      text: `FREE delivery on orders over ${formatPrice(FREE_SHIPPING_THRESHOLD)}`,
-    },
-    {
-      icon: <ShieldCheck className="size-3" />,
-      text: "6-month warranty on every machine",
-    },
     {
       icon: <Package className="size-3" />,
       text: "Cash on Delivery — nationwide",

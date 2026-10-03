@@ -46,6 +46,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Checkout is signed-in only — a guest order has no account to attach to,
+  // so the cart waits here until they come back with a session.
+  if (pathname.startsWith("/checkout") && !session) {
+    const url = new URL("/login", request.url)
+    url.searchParams.set("next", `${pathname}${search}`)
+    return NextResponse.redirect(url)
+  }
+
   if (pathname.startsWith("/account") && !session) {
     const url = new URL("/login", request.url)
     url.searchParams.set("next", `${pathname}${search}`)
@@ -56,5 +64,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*", "/checkout/:path*"],
 }

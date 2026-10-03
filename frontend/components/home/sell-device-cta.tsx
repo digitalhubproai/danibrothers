@@ -4,8 +4,7 @@ import Link from "next/link"
 import { useRef } from "react"
 import { motion, useScroll, useTransform } from "motion/react"
 import { ArrowRight, MessageCircle } from "lucide-react"
-import { site, whatsappLink, FREE_SHIPPING_THRESHOLD } from "@/lib/site"
-import { formatPrice } from "@/lib/format"
+import { site, whatsappLink } from "@/lib/site"
 
 export function SellDeviceCTA() {
   const ref = useRef<HTMLDivElement>(null)
@@ -133,10 +132,7 @@ export function SellDeviceCTA() {
 
       {/* Bottom address */}
       <div className="relative mt-8 pt-6 border-t border-white/5">
-        <p className="text-xs text-white/30">
-          Free delivery on orders over {formatPrice(FREE_SHIPPING_THRESHOLD)} · Visit us at{" "}
-          {site.address}
-        </p>
+        <p className="text-xs text-white/30">Visit us at {site.address}</p>
       </div>
     </div>
   )

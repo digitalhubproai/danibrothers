@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 import { CheckoutForm } from "@/components/checkout/checkout-form"
-import { getCurrentUser } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { api } from "@/lib/api"
+import type { ApiUser } from "@/lib/api-types"
+import { getCurrentUser, sessionToken } from "@/lib/auth"
 import { PageHero } from "@/components/site/page-hero"
 import { Reveal } from "@/components/motion/reveal"
 import { Shield, Truck, Clock } from "lucide-react"
@@ -12,13 +14,14 @@ export const metadata: Metadata = {
 }
 
 export default async function CheckoutPage() {
+  // proxy.ts already gates this route — the layout-level re-check keeps that
+  // guarantee local to the page, the same way /admin and /account do.
   const user = await getCurrentUser()
-  const profile = user
-    ? await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { name: true, email: true, phone: true },
-      })
-    : null
+  if (!user) redirect("/login?next=%2Fcheckout")
+
+  const profile = await api
+    .get<ApiUser>("/api/auth/me", await sessionToken())
+    .catch(() => null)
 
   return (
     <>
@@ -26,7 +29,7 @@ export default async function CheckoutPage() {
         compact
         eyebrow="Secure checkout"
         title="Checkout"
-        description="Two minutes, no account needed. We'll call you to confirm the order and delivery window before anything ships."
+        description="Two minutes to place the order. We'll call you to confirm it and lock in the delivery window before anything ships."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Cart", href: "/cart" }, { label: "Checkout" }]}
       >
         <div className="flex flex-wrap gap-4">

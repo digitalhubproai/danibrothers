@@ -1,7 +1,5 @@
 import { cookies } from "next/headers"
-import { SignJWT, jwtVerify } from "jose"
-import bcrypt from "bcryptjs"
-import { prisma } from "@/lib/db"
+import { jwtVerify } from "jose"
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SECONDS } from "@/lib/session"
 
 const COOKIE_NAME = SESSION_COOKIE_NAME
@@ -22,20 +20,32 @@ function secretKey(): Uint8Array {
   return new TextEncoder().encode(secret)
 }
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12)
+/**
+ * The backend signs the session JWT (HS256, shared `AUTH_SECRET`) and hands it
+ * back from login/register. All this side does is park it in the httpOnly
+ * cookie that `proxy.ts` reads — so the signature is created in exactly one
+ * place.
+ */
+export async function setSessionToken(token: string): Promise<void> {
+  const store = await cookies()
+  store.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAX_AGE_SECONDS,
+  })
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash)
+/** The raw token, for forwarding to the backend as `Authorization: Bearer`. */
+export async function sessionToken(): Promise<string | null> {
+  const store = await cookies()
+  return store.get(COOKIE_NAME)?.value ?? null
 }
 
-export async function signSessionToken(user: SessionUser): Promise<string> {
-  return new SignJWT({ ...user })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${MAX_AGE_SECONDS}s`)
-    .sign(secretKey())
+export async function destroySession(): Promise<void> {
+  const store = await cookies()
+  store.delete(COOKIE_NAME)
 }
 
 export async function verifySessionToken(token: string): Promise<SessionUser | null> {
@@ -54,23 +64,6 @@ export async function verifySessionToken(token: string): Promise<SessionUser | n
   }
 }
 
-export async function createSession(user: SessionUser): Promise<void> {
-  const token = await signSessionToken(user)
-  const store = await cookies()
-  store.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: MAX_AGE_SECONDS,
-  })
-}
-
-export async function destroySession(): Promise<void> {
-  const store = await cookies()
-  store.delete(COOKIE_NAME)
-}
-
 export async function getSession(): Promise<SessionUser | null> {
   const store = await cookies()
   const token = store.get(COOKIE_NAME)?.value
@@ -79,26 +72,12 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 /**
- * Reads the session and confirms the account still exists. Prefer this over
- * `getSession()` on anything that writes — a token stays valid for 7 days, so
- * a deleted or demoted account would otherwise keep its old access.
+ * Reads the session cookie. The token itself carries the user's identity, so
+ * no database round-trip is needed here — the backend re-checks against the
+ * database on every mutation.
  */
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const session = await getSession()
-  if (!session) return null
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: { id: true, name: true, email: true, role: true },
-  })
-  if (!user) return null
-
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role === "ADMIN" ? "ADMIN" : "CUSTOMER",
-  }
+  return getSession()
 }
 
 export async function requireUser(): Promise<SessionUser> {

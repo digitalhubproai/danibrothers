@@ -1,29 +1,11 @@
 "use server"
 
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
-import {
-  createSession,
-  destroySession,
-  hashPassword,
-  verifyPassword,
-  type SessionUser,
-} from "@/lib/auth"
+import { destroySession, setSessionToken } from "@/lib/auth"
+import { api, toActionResult } from "@/lib/api"
 import { isEmail, minLength, safeNext, str, type ActionResult } from "@/lib/validation"
 
-function toSessionUser(user: {
-  id: string
-  name: string
-  email: string
-  role: string
-}): SessionUser {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role === "ADMIN" ? "ADMIN" : "CUSTOMER",
-  }
-}
+type AuthResponse = { token: string; user: { id: string; role: string } }
 
 export async function loginAction(
   _prev: ActionResult | null,
@@ -44,15 +26,15 @@ export async function loginAction(
     }
   }
 
-  const user = await prisma.user.findUnique({ where: { email } })
-
-  // Same message either way — telling an attacker which emails exist is a free
-  // account-enumeration oracle.
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    return { ok: false, message: "Incorrect email or password." }
+  let token: string
+  try {
+    const result = await api.post<AuthResponse>("/api/auth/login", { email, password })
+    token = result.token
+  } catch (error) {
+    return toActionResult(error)
   }
 
-  await createSession(toSessionUser(user))
+  await setSessionToken(token)
   redirect(next)
 }
 
@@ -62,8 +44,8 @@ export async function registerAction(
 ): Promise<ActionResult> {
   const name = str(form, "name")
   const email = str(form, "email").toLowerCase()
-  const phone = str(form, "phone")
   const password = str(form, "password")
+  const phone = str(form, "phone")
   const next = safeNext(str(form, "next"))
 
   const fieldErrors: Record<string, string> = {}
@@ -74,26 +56,18 @@ export async function registerAction(
     return { ok: false, message: "Please fix the highlighted fields.", fieldErrors }
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) {
-    return {
-      ok: false,
-      message: "An account with that email already exists.",
-      fieldErrors: { email: "Already registered — try signing in instead." },
-    }
+  let token: string
+  try {
+    const result = await api.post<AuthResponse>(
+      "/api/auth/register",
+      { name, email, password, phone: phone || null },
+    )
+    token = result.token
+  } catch (error) {
+    return toActionResult(error)
   }
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      phone: phone || null,
-      passwordHash: await hashPassword(password),
-      role: "CUSTOMER",
-    },
-  })
-
-  await createSession(toSessionUser(user))
+  await setSessionToken(token)
   redirect(next)
 }
 

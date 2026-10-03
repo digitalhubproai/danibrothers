@@ -16,9 +16,9 @@ export const dynamic = "force-dynamic"
 export default async function HomePage() {
   const [categories, deals, accessories, cctv] = await Promise.all([
     getCategories(),
-    getProductsByCategorySlugs(["laptops", "desktops"], 8),
-    getProductsByCategorySlugs(["accessories", "keyboards-mice", "audio-webcams", "storage"], 8),
-    getProductsByCategorySlugs(["security-cctv"], 8),
+    getProductsByCategorySlugs(["laptops", "desktop-pcs"], 8),
+    getProductsByCategorySlugs(["accessories", "components", "audio", "storage"], 8),
+    getProductsByCategorySlugs(["cctv"], 8),
   ])
 
   return (
@@ -66,7 +66,7 @@ export default async function HomePage() {
           eyebrow="Stay protected"
           title="CCTV & Security"
           description="Cameras and NVRs for shops, homes and offices — installed or supplied."
-          action={{ href: "/shop?category=security-cctv", label: "Shop CCTV" }}
+          action={{ href: "/shop?category=cctv", label: "Shop CCTV" }}
         />
         <Reveal>
           <CctvSection products={cctv} />

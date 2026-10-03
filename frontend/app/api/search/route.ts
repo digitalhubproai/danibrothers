@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/db"
 
+const BASE_URL = (process.env.API_URL ?? "http://localhost:8000").replace(/\/+$/, "")
+
+/** Header search box — same contract as before: `{ products: [...] }`. */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const q = searchParams.get("q")?.trim()
@@ -9,41 +11,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ products: [] })
   }
 
-  const products = await prisma.product.findMany({
-    where: {
-      OR: [
-        { name: { contains: q } },
-        { brand: { contains: q } },
-        { description: { contains: q } },
-      ],
-    },
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      brand: true,
-      price: true,
-      condition: true,
-      images: true,
-    },
-    orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-    take: 8,
-  })
-
-  const result = products.map((p) => {
-    const images: string[] = (() => {
-      try {
-        const parsed = JSON.parse(p.images)
-        return Array.isArray(parsed) ? parsed : []
-      } catch {
-        return []
-      }
-    })()
-    return {
-      ...p,
-      primaryImage: images[0] ?? null,
-    }
-  })
-
-  return NextResponse.json({ products: result })
+  try {
+    const response = await fetch(`${BASE_URL}/api/search?q=${encodeURIComponent(q)}`, {
+      cache: "no-store",
+    })
+    const payload = await response.json()
+    return NextResponse.json(payload, { status: response.status })
+  } catch {
+    return NextResponse.json({ products: [] })
+  }
 }

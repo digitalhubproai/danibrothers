@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ShopFilters, type ShopFacets } from "@/components/product/shop-filters"
-// Not `@/lib/products` — that imports Prisma, and this is a Client Component.
+// Not `@/lib/products` — that stays server-only, and this is a Client Component.
 // See lib/sort-options.ts.
 import { SORT_OPTIONS, type SortKey } from "@/lib/sort-options"
 

@@ -24,7 +24,7 @@ import { ShareButton } from "@/components/product/share-button"
 import { Section, SectionHeading } from "@/components/site/section"
 import { Reveal } from "@/components/motion/reveal"
 import { getProductBySlug, getRelatedProducts, stockState } from "@/lib/products"
-import { CONDITION_DESCRIPTION, FREE_SHIPPING_THRESHOLD, site, whatsappLink, type Condition } from "@/lib/site"
+import { CONDITION_DESCRIPTION, SHIPPING_FLAT, site, whatsappLink, type Condition } from "@/lib/site"
 import { discountPercent, formatPrice } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -51,7 +51,7 @@ export async function generateMetadata({
 }
 
 const ASSURANCES = [
-  { icon: Truck, title: "2–4 day delivery", body: "Nationwide, free over threshold", color: "text-brand", bg: "bg-brand-subtle" },
+  { icon: Truck, title: "2–4 day delivery", body: `Nationwide, flat ${formatPrice(SHIPPING_FLAT)}`, color: "text-brand", bg: "bg-brand-subtle" },
   { icon: Banknote, title: "Cash on delivery", body: "Pay when it arrives", color: "text-success", bg: "bg-success-subtle" },
   { icon: Shield, title: "Written warranty", body: "Printed on your invoice", color: "text-warning", bg: "bg-warning-subtle" },
   { icon: Wrench, title: "Bench-tested", body: "Full health report included", color: "text-brand", bg: "bg-brand-subtle" },
@@ -134,7 +134,7 @@ export default async function ProductPage({
             {[
               { icon: Check, text: "Tested", color: "text-success" },
               { icon: Shield, text: "Warranty", color: "text-warning" },
-              { icon: Truck, text: "Free delivery", color: "text-brand" },
+              { icon: Truck, text: "Nationwide delivery", color: "text-brand" },
             ].map(({ icon: Icon, text, color }) => (
               <span key={text} className="flex items-center gap-1 text-xs font-medium text-muted-foreground/70">
                 <Icon className={`size-3 ${color}`} />
@@ -226,7 +226,8 @@ export default async function ProductPage({
           </div>
 
           <p className="mt-4 text-[0.65rem] text-muted-foreground/50">
-            Free delivery on orders over {formatPrice(FREE_SHIPPING_THRESHOLD)}. 15-day return window on unused items.
+            Nationwide delivery for {formatPrice(SHIPPING_FLAT)}. 15-day return window on unused
+            items.
           </p>
         </Reveal>
       </div>

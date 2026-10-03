@@ -1,7 +1,7 @@
-import type { Category, Prisma, Product } from "@prisma/client"
-import { prisma } from "@/lib/db"
+import type { Category, Product } from "@/lib/db-types"
 import type { SortKey } from "@/lib/sort-options"
 import type { Spec, ProductView } from "@/lib/product-types"
+import { ApiError, api } from "@/lib/api"
 
 // Re-exported for server-side callers. Client components must import these
 // from `@/lib/sort-options` directly — see the note in that file.
@@ -11,7 +11,8 @@ export type { Spec, ProductView } from "@/lib/product-types"
 export { stockState } from "@/lib/product-types"
 
 /**
- * `images` and `specs` are JSON strings in SQLite (no JSON column type). A
+ * `images` and `specs` are JSON strings in the column (the API passes them
+ * through untouched so the admin forms can keep editing them as text). A
  * malformed value should degrade to an empty list rather than crash a page,
  * so parsing is defensive.
  */
@@ -24,8 +25,13 @@ function parseArray<T>(raw: string): T[] {
   }
 }
 
-type ProductRow = Product & {
-  category?: Pick<Category, "id" | "name" | "slug"> | null
+/** Row as it arrives from the API: JSON still encoded, dates still ISO strings. */
+export type ProductRow = Omit<Product, "images" | "specs" | "createdAt" | "updatedAt"> & {
+  images: string
+  specs: string
+  createdAt: string
+  updatedAt: string
+  category: Pick<Category, "id" | "name" | "slug"> | null
 }
 
 export function toProductView(row: ProductRow): ProductView {
@@ -40,10 +46,10 @@ export function toProductView(row: ProductRow): ProductView {
     ),
     category: row.category ?? null,
     primaryImage: images[0] ?? null,
+    createdAt: new Date(row.createdAt),
+    updatedAt: new Date(row.updatedAt),
   }
 }
-
-const withCategory = { category: { select: { id: true, name: true, slug: true } } } as const
 
 export type ProductFilters = {
   category?: string
@@ -58,76 +64,46 @@ export type ProductFilters = {
   perPage?: number
 }
 
-function buildWhere(filters: ProductFilters): Prisma.ProductWhereInput {
-  const where: Prisma.ProductWhereInput = {}
-
-  if (filters.category) where.category = { slug: filters.category }
-  if (filters.brands?.length) where.brand = { in: filters.brands }
-  if (filters.conditions?.length) where.condition = { in: filters.conditions }
-  if (filters.featuredOnly) where.featured = true
-
-  if (filters.minPrice != null || filters.maxPrice != null) {
-    where.price = {
-      ...(filters.minPrice != null ? { gte: filters.minPrice } : {}),
-      ...(filters.maxPrice != null ? { lte: filters.maxPrice } : {}),
-    }
-  }
-
-  // SQLite's `contains` is case-insensitive for ASCII by default, which is
-  // what we want for brand/model searches here.
-  if (filters.q?.trim()) {
-    const q = filters.q.trim()
-    where.OR = [{ name: { contains: q } }, { brand: { contains: q } }, { description: { contains: q } }]
-  }
-
-  return where
+type ProductListResponse = {
+  products: ProductRow[]
+  total: number
+  page: number
+  perPage: number
+  pageCount: number
 }
 
-function buildOrderBy(sort: SortKey = "newest"): Prisma.ProductOrderByWithRelationInput[] {
-  switch (sort) {
-    case "price-asc":
-      return [{ price: "asc" }]
-    case "price-desc":
-      return [{ price: "desc" }]
-    case "name":
-      return [{ name: "asc" }]
-    default:
-      return [{ featured: "desc" }, { createdAt: "desc" }]
-  }
+function queryString(filters: ProductFilters, page: number, perPage: number): string {
+  const params = new URLSearchParams()
+  if (filters.category) params.append("category", filters.category)
+  for (const brand of filters.brands ?? []) params.append("brand", brand)
+  for (const condition of filters.conditions ?? []) params.append("condition", condition)
+  if (filters.minPrice != null) params.set("min", String(filters.minPrice))
+  if (filters.maxPrice != null) params.set("max", String(filters.maxPrice))
+  if (filters.q) params.set("q", filters.q)
+  if (filters.sort) params.set("sort", filters.sort)
+  if (filters.featuredOnly) params.set("featured", "true")
+  params.set("page", String(page))
+  params.set("per_page", String(perPage))
+  return params.toString()
 }
 
 export async function getProducts(filters: ProductFilters = {}) {
   const page = Math.max(1, filters.page ?? 1)
   const perPage = filters.perPage ?? 12
-  const where = buildWhere(filters)
 
-  const [rows, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: withCategory,
-      orderBy: buildOrderBy(filters.sort),
-      skip: (page - 1) * perPage,
-      take: perPage,
-    }),
-    prisma.product.count({ where }),
-  ])
+  const data = await api.get<ProductListResponse>(`/api/products?${queryString(filters, page, perPage)}`)
 
   return {
-    products: rows.map(toProductView),
-    total,
-    page,
-    perPage,
-    pageCount: Math.max(1, Math.ceil(total / perPage)),
+    products: data.products.map(toProductView),
+    total: data.total,
+    page: data.page,
+    perPage: data.perPage,
+    pageCount: data.pageCount,
   }
 }
 
 export async function getFeaturedProducts(take = 8): Promise<ProductView[]> {
-  const rows = await prisma.product.findMany({
-    where: { featured: true },
-    include: withCategory,
-    orderBy: { createdAt: "desc" },
-    take,
-  })
+  const rows = await api.get<ProductRow[]>(`/api/products/featured?take=${take}`)
   return rows.map(toProductView)
 }
 
@@ -135,58 +111,47 @@ export async function getProductsByCategorySlugs(
   categorySlugs: string[],
   take = 8,
 ): Promise<ProductView[]> {
-  const rows = await prisma.product.findMany({
-    where: {
-      category: { slug: { in: categorySlugs } },
-    },
-    include: withCategory,
-    orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-    take,
-  })
-  return rows.map(toProductView)
+  const params = new URLSearchParams()
+  for (const slug of categorySlugs) params.append("category", slug)
+  params.set("per_page", String(take))
+  const data = await api.get<ProductListResponse>(`/api/products?${params.toString()}`)
+  return data.products.map(toProductView)
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductView | null> {
-  const row = await prisma.product.findUnique({ where: { slug }, include: withCategory })
-  return row ? toProductView(row) : null
+  try {
+    return toProductView(await api.get<ProductRow>(`/api/products/${encodeURIComponent(slug)}`))
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null
+    throw error
+  }
 }
 
 export async function getRelatedProducts(
   product: Pick<ProductView, "id" | "categoryId">,
   take = 4,
 ): Promise<ProductView[]> {
-  const rows = await prisma.product.findMany({
-    where: { categoryId: product.categoryId, id: { not: product.id } },
-    include: withCategory,
-    orderBy: { featured: "desc" },
-    take,
+  const params = new URLSearchParams({
+    category_id: product.categoryId,
+    exclude: product.id,
+    take: String(take),
   })
+  const rows = await api.get<ProductRow[]>(`/api/products/related?${params.toString()}`)
   return rows.map(toProductView)
 }
 
 export async function getCategories(): Promise<(Category & { productCount: number })[]> {
-  const rows = await prisma.category.findMany({
-    orderBy: { sortOrder: "asc" },
-    include: { _count: { select: { products: true } } },
-  })
-  return rows.map(({ _count, ...category }) => ({ ...category, productCount: _count.products }))
+  return api.get<(Category & { productCount: number })[]>("/api/categories")
 }
 
 export async function getBrands(): Promise<string[]> {
-  const rows = await prisma.product.findMany({
-    distinct: ["brand"],
-    select: { brand: true },
-    orderBy: { brand: "asc" },
-  })
-  return rows.map((r) => r.brand)
+  return api.get<string[]>("/api/brands")
 }
 
 export async function getPriceBounds(): Promise<{ min: number; max: number }> {
-  const result = await prisma.product.aggregate({ _min: { price: true }, _max: { price: true } })
-  return { min: result._min.price ?? 0, max: result._max.price ?? 0 }
+  return api.get<{ min: number; max: number }>("/api/products/price-bounds")
 }
 
 export async function getProductSlugs(): Promise<string[]> {
-  const rows = await prisma.product.findMany({ select: { slug: true } })
-  return rows.map((r) => r.slug)
+  return api.get<string[]>("/api/products/slugs")
 }

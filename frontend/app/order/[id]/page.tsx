@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button"
 import { ProductThumb } from "@/components/product/product-thumb"
 import { ClearCartOnMount } from "@/components/checkout/clear-cart"
 import { OrderStatusBadge } from "@/components/admin/order-status-badge"
-import { prisma } from "@/lib/db"
+import { ApiError, api } from "@/lib/api"
+import type { ApiOrder } from "@/lib/api-types"
 import { formatDateTime, formatPrice } from "@/lib/format"
 import { ORDER_STATUS_LABEL, type OrderStatus, site, whatsappLink } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -34,12 +35,15 @@ const TIMELINE: OrderStatus[] = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"]
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: { items: true },
-  })
-
-  if (!order) notFound()
+  // Public by design: this link is the receipt, and the id is an unguessable
+  // UUID — no session needed, same as before.
+  let order: ApiOrder
+  try {
+    order = await api.get<ApiOrder>(`/api/orders/${encodeURIComponent(id)}`)
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) notFound()
+    throw error
+  }
 
   const cancelled = order.status === "CANCELLED"
   const activeStep = TIMELINE.indexOf(order.status as OrderStatus)
@@ -166,13 +170,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground/70">Delivery</dt>
-                <dd className="font-semibold tnum">
-                  {order.shipping === 0 ? (
-                    <span className="text-emerald-600 font-bold">FREE</span>
-                  ) : (
-                    formatPrice(order.shipping)
-                  )}
-                </dd>
+                <dd className="font-semibold tnum">{formatPrice(order.shipping)}</dd>
               </div>
               <div className="flex items-baseline justify-between border-t border-border/50 pt-3">
                 <dt className="font-bold">Total</dt>

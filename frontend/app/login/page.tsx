@@ -25,7 +25,7 @@ export default async function LoginPage({
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Sign in to track orders, download invoices and manage your details."
+      subtitle="Sign in to check out, track orders, download invoices and manage your details."
     >
       <LoginForm next={next} />
     </AuthShell>

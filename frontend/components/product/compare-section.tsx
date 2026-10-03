@@ -3,12 +3,11 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useCompare, type CompareItem } from "@/lib/compare"
 import { formatPrice } from "@/lib/format"
 import { stockState } from "@/lib/product-types"
 import { ConditionBadge } from "@/components/product/condition-badge"
 import { AddToCartButton } from "@/components/product/add-to-cart"
-import { GitCompareArrows, X, Plus, Check } from "lucide-react"
+import { GitCompareArrows, Plus, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import type { ProductView } from "@/lib/product-types"
@@ -20,10 +19,6 @@ export function CompareSection({
   product: ProductView
   related: ProductView[]
 }) {
-  const compareItems = useCompare((s) => s.items)
-  const add = useCompare((s) => s.add)
-  const remove = useCompare((s) => s.remove)
-  const has = useCompare((s) => s.items.some((i) => i.productId === product.id))
   const [selected, setSelected] = useState<ProductView[]>([])
 
   function toggleProduct(p: ProductView) {

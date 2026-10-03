@@ -2,14 +2,19 @@
 
 import { useTheme } from "next-themes"
 import { Sun, Moon } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 import { cn } from "@/lib/utils"
+
+// Hydration guard: false on the server and during the first client render,
+// true afterwards. Unlike a `useState` + `useEffect` pair this never calls
+// setState from an effect.
+const subscribe = () => () => {}
+const getSnapshot = () => true
+const getServerSnapshot = () => false
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => setMounted(true), [])
+  const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   if (!mounted) {
     return (

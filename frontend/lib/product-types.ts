@@ -1,4 +1,4 @@
-import type { Category, Product } from "@prisma/client"
+import type { Category, Product } from "@/lib/db-types"
 
 export type Spec = { label: string; value: string }
 

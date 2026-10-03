@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { useCartHydrated } from "@/components/site/use-cart-count"
 import { useCart, cartSubtotal } from "@/lib/cart"
 import { formatPrice } from "@/lib/format"
-import { FREE_SHIPPING_THRESHOLD, shippingFor } from "@/lib/site"
+import { SHIPPING_FLAT } from "@/lib/site"
 import { ProductThumb } from "@/components/product/product-thumb"
 
 export function CartDrawer() {
@@ -21,8 +21,7 @@ export function CartDrawer() {
 
   const visible = hydrated ? lines : []
   const subtotal = cartSubtotal(visible)
-  const shipping = shippingFor(subtotal)
-  const remainingForFree = FREE_SHIPPING_THRESHOLD - subtotal
+  const shipping = SHIPPING_FLAT
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
@@ -59,12 +58,6 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            {remainingForFree > 0 && (
-              <div className="border-b border-border bg-brand-subtle px-4 py-2.5 text-xs font-medium text-brand">
-                Add {formatPrice(remainingForFree)} more for free delivery
-              </div>
-            )}
-
             <div className="flex-1 divide-y divide-border overflow-y-auto">
               {visible.map((line) => (
                 <div key={line.productId} className="flex gap-3 p-4">
@@ -134,13 +127,7 @@ export function CartDrawer() {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Delivery</dt>
-                  <dd className="font-medium tnum">
-                    {shipping === 0 ? (
-                      <span className="text-success">Free</span>
-                    ) : (
-                      formatPrice(shipping)
-                    )}
-                  </dd>
+                  <dd className="font-medium tnum">{formatPrice(shipping)}</dd>
                 </div>
                 <div className="flex justify-between border-t border-border pt-2 text-base">
                   <dt className="font-semibold">Total</dt>

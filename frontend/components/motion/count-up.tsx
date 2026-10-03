@@ -19,6 +19,7 @@ export function CountUp({
   suffix = "",
   prefix = "",
   decimals = 0,
+  format,
   className,
 }: {
   value: number
@@ -26,6 +27,8 @@ export function CountUp({
   suffix?: string
   prefix?: string
   decimals?: number
+  /** Overrides the default locale formatting — e.g. `Rs 1.2M` for money. */
+  format?: (n: number) => string
   className?: string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -56,10 +59,12 @@ export function CountUp({
     return () => cancelAnimationFrame(frame)
   }, [inView, value, duration, reduceMotion])
 
-  const formatted = display.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  })
+  const formatted = format
+    ? format(display)
+    : display.toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
 
   return (
     <span ref={ref} className={className}>

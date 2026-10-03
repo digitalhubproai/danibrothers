@@ -1,13 +1,14 @@
 "use client"
 
-import { useActionState, type ComponentProps } from "react"
+import { useActionState, useRef, useState, type ComponentProps } from "react"
 import Link from "next/link"
-import { AlertCircle, Loader2 } from "lucide-react"
+import Image from "next/image"
+import { AlertCircle, FileText, IndianRupee, Images, Loader2, Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { saveProductAction } from "@/app/actions/admin"
+import { saveProductAction, uploadImageAction } from "@/app/actions/admin"
 import { CONDITIONS, CONDITION_LABEL } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/lib/validation"
@@ -24,10 +25,17 @@ export type ProductFormValues = {
   stock: string
   condition: string
   featured: boolean
-  /** One URL per line — the textarea is the simplest editable list. */
+  /** One image path per line — uploads append here, pasted URLs still work. */
   images: string
   /** `Label: value` per line. */
   specs: string
+}
+
+function imageLines(value: string): string[] {
+  return value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
 }
 
 export function ProductForm({
@@ -42,8 +50,46 @@ export function ProductForm({
     null,
   )
 
+  // Controlled so an upload can append to the list without losing edits that
+  // are already in the textarea.
+  const [images, setImages] = useState(values.images)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {}
   const isEdit = Boolean(values.id)
+  const imageList = imageLines(images)
+
+  async function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    // Reset first so picking the same file twice still fires a change event.
+    event.target.value = ""
+    if (!file) return
+
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const form = new FormData()
+      form.append("file", file, file.name)
+      const result = await uploadImageAction(form)
+      if (!result.ok) {
+        setUploadError(result.message)
+        return
+      }
+      const url = result.data?.url
+      if (!url) return
+      setImages((current) => (imageLines(current).length ? `${current.replace(/\s*$/, "")}\n${url}` : url))
+    } catch {
+      setUploadError("Upload failed. Please try again.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function removeImage(url: string) {
+    setImages(imageLines(images).filter((line) => line !== url).join("\n"))
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-6" noValidate>
@@ -59,9 +105,12 @@ export function ProductForm({
         </p>
       )}
 
-      <section className="rounded-xl border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold">Basics</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <Section
+        icon={<FileText />}
+        title="Basics"
+        hint="What the listing is called, and how it reads in search."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Product name"
             name="name"
@@ -115,11 +164,14 @@ export function ProductForm({
             )}
           </div>
         </div>
-      </section>
+      </Section>
 
-      <section className="rounded-xl border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold">Pricing &amp; stock</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+      <Section
+        icon={<IndianRupee />}
+        title="Pricing & stock"
+        hint="Everything in rupees — compare-at price is what gets crossed out."
+      >
+        <div className="grid gap-4 sm:grid-cols-3">
           <Field
             label="Price (Rs)"
             name="price"
@@ -173,24 +225,85 @@ export function ProductForm({
             Feature on the home page
           </label>
         </div>
-      </section>
+      </Section>
 
-      <section className="rounded-xl border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold">Media &amp; specs</h2>
-
-        <div className="mt-4 grid gap-4">
+      <Section
+        icon={<Images />}
+        title="Photos, specs & URL"
+        hint="Upload the shots, then tidy up the technical details."
+      >
+        <div className="grid gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="images">Image URLs</Label>
+            <Label htmlFor="images">Photos</Label>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                className="sr-only"
+                onChange={handleUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-xs"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? <Loader2 className="animate-spin" /> : <Plus className="size-3.5" />}
+                {uploading ? "Uploading…" : "Upload image"}
+              </Button>
+              <span className="text-xs text-muted-foreground">JPG, PNG, WebP — up to 25 MB.</span>
+            </div>
+
+            {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
+
+            {imageList.length > 0 && (
+              <ul className="mt-1 grid grid-cols-4 gap-2 sm:grid-cols-6">
+                {imageList.map((url, index) => (
+                  <li
+                    key={`${url}-${index}`}
+                    className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted"
+                  >
+                    <Image
+                      src={url}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 25vw, 10vw"
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(url)}
+                      aria-label={`Remove image ${index + 1}`}
+                      className="absolute inset-0 grid place-items-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                    >
+                      <X className="size-4" />
+                    </button>
+                    {index === 0 && (
+                      <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[0.6rem] font-medium text-white">
+                        Cover
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
             <Textarea
               id="images"
               name="images"
               rows={4}
-              defaultValue={values.images}
-              placeholder={"https://images.unsplash.com/photo-…\nhttps://…"}
+              value={images}
+              onChange={(event) => setImages(event.target.value)}
+              placeholder={"/uploads/3f9a1c….jpg\nhttps://example.com/photo.jpg"}
               className="font-mono text-xs"
             />
             <p className="text-xs text-muted-foreground">
-              One URL per line. The first image is the one shown on cards and in search results.
+              Upload photos above, or paste a path / URL — one per line. The first is the cover
+              shot shown on cards and in search results.
             </p>
           </div>
 
@@ -224,9 +337,9 @@ export function ProductForm({
             </p>
           </div>
         </div>
-      </section>
+      </Section>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 bg-card px-5 py-4 shadow-sm">
         <Button type="submit" size="lg" className="h-10 px-5 text-sm" disabled={pending}>
           {pending && <Loader2 className="animate-spin" />}
           {isEdit ? "Save changes" : "Create product"}
@@ -244,6 +357,33 @@ export function ProductForm({
         )}
       </div>
     </form>
+  )
+}
+
+function Section({
+  icon,
+  title,
+  hint,
+  children,
+}: {
+  icon: React.ReactNode
+  title: string
+  hint?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm md:p-6">
+      <div className="flex items-center gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-subtle text-brand [&_svg]:size-4">
+          {icon}
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">{title}</h2>
+          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        </div>
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
   )
 }
 

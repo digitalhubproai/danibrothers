@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { Stagger, StaggerItem } from "@/components/motion/reveal"
-import type { Category } from "@prisma/client"
+import type { Category } from "@/lib/db-types"
 
 const ICONS: Record<string, LucideIcon> = {
   laptop: Laptop,

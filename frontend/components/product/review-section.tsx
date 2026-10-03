@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useReviews, type Review } from "@/lib/reviews"
+import { useReviews } from "@/lib/reviews"
 import { Star, MessageSquarePlus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"

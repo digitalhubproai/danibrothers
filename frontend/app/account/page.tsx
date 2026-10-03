@@ -5,8 +5,9 @@ import { LogOut, PackageOpen, ShieldCheck, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { OrderStatusBadge } from "@/components/admin/order-status-badge"
 import { logoutAction } from "@/app/actions/auth"
-import { getCurrentUser } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { ApiError, api } from "@/lib/api"
+import type { ApiOrder, ApiUser } from "@/lib/api-types"
+import { getCurrentUser, sessionToken } from "@/lib/auth"
 import { formatDate, formatPrice } from "@/lib/format"
 import { site } from "@/lib/site"
 import { PageHero } from "@/components/site/page-hero"
@@ -25,17 +26,24 @@ export default async function AccountPage() {
   const user = await getCurrentUser()
   if (!user) redirect("/login?next=%2Faccount")
 
-  const [profile, orders] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: user.id },
-      select: { createdAt: true },
-    }),
-    prisma.order.findMany({
-      where: { userId: user.id },
-      include: { items: { select: { id: true, name: true, qty: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-  ])
+  const token = await sessionToken()
+
+  let profile: ApiUser
+  let orders: ApiOrder[]
+  try {
+    const [me, mine] = await Promise.all([
+      api.get<ApiUser>("/api/auth/me", token),
+      api.get<{ orders: ApiOrder[] }>("/api/orders/mine", token),
+    ])
+    profile = me
+    orders = mine.orders
+  } catch (error) {
+    // Account deleted server-side, or the session no longer resolves there.
+    if (error instanceof ApiError && error.status === 401) {
+      redirect("/login?next=%2Faccount")
+    }
+    throw error
+  }
 
   const totalSpent = orders
     .filter((o) => o.status !== "CANCELLED")

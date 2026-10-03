@@ -42,7 +42,7 @@ export const CONDITION_LABEL: Record<Condition, string> = {
 
 export const CONDITION_DESCRIPTION: Record<Condition, string> = {
   NEW: "Sealed box, full manufacturer warranty.",
-  REFURBISHED: "Professionally restored, tested, 6-month shop warranty.",
+  REFURBISHED: "Professionally restored, tested.",
   USED: "Pre-owned, inspected and graded. Sold as-is with 15-day check warranty.",
 }
 
@@ -63,9 +63,5 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   CANCELLED: "Cancelled",
 }
 
+/** Flat delivery fee on every order — no free-delivery threshold. */
 export const SHIPPING_FLAT = 350
-export const FREE_SHIPPING_THRESHOLD = 50_000
-
-export function shippingFor(subtotal: number): number {
-  return subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_FLAT
-}

@@ -3,18 +3,18 @@
 import { useEffect, useRef } from "react"
 import Link from "next/link"
 import type { ReactNode } from "react"
-import { Mail, MapPin, Phone, Clock, ArrowUpRight, Truck, Shield, BadgeCheck, MessageCircle } from "lucide-react"
+import { Mail, MapPin, Phone, Clock, ArrowUpRight, Truck, BadgeCheck, MessageCircle } from "lucide-react"
 import { Logo } from "@/components/site/logo"
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/site/social-icons"
 import { site, whatsappLink } from "@/lib/site"
 
 const shopLinks = [
   { href: "/shop?category=laptops", label: "Laptops" },
-  { href: "/shop?category=desktops", label: "Desktops & PCs" },
+  { href: "/shop?category=desktop-pcs", label: "Desktops & PCs" },
   { href: "/shop?category=monitors", label: "Monitors" },
-  { href: "/shop?category=keyboards-mice", label: "Keyboards & Mice" },
+  { href: "/shop?category=components", label: "Components & Parts" },
   { href: "/shop?category=storage", label: "Storage & Drives" },
-  { href: "/shop?category=security-cctv", label: "Security & CCTV" },
+  { href: "/shop?category=cctv", label: "Security & CCTV" },
   { href: "/shop?category=accessories", label: "Accessories" },
 ]
 
@@ -95,7 +95,6 @@ export function SiteFooter() {
         <div className="container-page flex flex-wrap items-center justify-center gap-x-8 gap-y-3 py-4">
           {[
             { icon: Truck, text: "Nationwide delivery", color: "text-blue-500" },
-            { icon: Shield, text: "6-month warranty", color: "text-emerald-500" },
             { icon: BadgeCheck, text: "Bench-tested units", color: "text-amber-500" },
             { icon: MessageCircle, text: "WhatsApp support", color: "text-green-500" },
           ].map(({ icon: Icon, text, color }) => (
