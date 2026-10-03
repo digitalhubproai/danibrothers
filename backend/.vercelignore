@@ -1,8 +1,9 @@
+.env
+.env.*
+!.env.example
 .venv/
 __pycache__/
 *.pyc
-.env
 uploads/
-.vercel
-.env*
+.vercel/
 *.log

@@ -1,3 +1,4 @@
+import os
 import uuid
 from pathlib import Path
 
@@ -41,7 +42,17 @@ def inquiry_to_dict(i: Inquiry) -> dict:
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
 # Files land here and are served by the /uploads static mount in main.py.
-UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
+# Vercel's serverless filesystem is read-only outside /tmp, so the deployment
+# keeps its uploads there (per-instance and ephemeral — see main.py).
+def _default_upload_dir() -> Path:
+    if os.environ.get("UPLOAD_DIR"):
+        return Path(os.environ["UPLOAD_DIR"])
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/uploads")
+    return Path(__file__).resolve().parents[2] / "uploads"
+
+
+UPLOAD_DIR = _default_upload_dir()
 
 # The extension is taken from the content type, never from the filename, so a
 # renamed .html can't be stored as an image.
