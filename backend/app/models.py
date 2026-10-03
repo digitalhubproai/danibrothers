@@ -64,6 +64,10 @@ class Order(UUIDMixin, TimestampMixin, Base):
     city: Mapped[str] = mapped_column(VARCHAR(80), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     payment_method: Mapped[str] = mapped_column(VARCHAR(20), nullable=False, default="COD")
+    # Bank-transfer receipts the customer attaches at checkout, stored as a
+    # `/uploads/...` path — same convention as product photos, so a change of
+    # API host never breaks a link already saved here.
+    payment_proof: Mapped[str | None] = mapped_column(TEXT, nullable=True)
     subtotal: Mapped[int] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     shipping: Mapped[int] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     total: Mapped[int] = mapped_column(Numeric(12, 2), nullable=False, default=0)

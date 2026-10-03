@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import {
   ArrowLeft,
   Check,
+  FileImage,
   MapPin,
   MessageCircle,
   Package,
@@ -284,6 +285,29 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
             <p className="mt-1.5 text-sm">
               {order.paymentMethod === "COD" ? "Cash on delivery" : "Bank transfer"}
             </p>
+
+            {/* The customer's own proof that the money moved. Rendered as a
+                link rather than an inline image: it decides whether the order
+                ships, so it gets looked at full size, not at thumbnail size. */}
+            {order.paymentMethod === "BANK_TRANSFER" && (
+              <div className="mt-2">
+                {order.paymentProof ? (
+                  <a
+                    href={order.paymentProof}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-blue-500/25 bg-blue-500/5 px-2.5 py-1.5 text-xs font-semibold text-blue-600 underline-offset-4 hover:underline"
+                  >
+                    <FileImage className="size-3.5" />
+                    View payment receipt
+                  </a>
+                ) : (
+                  <p className="text-xs leading-relaxed text-amber-600">
+                    No receipt attached — ask the customer for it before shipping.
+                  </p>
+                )}
+              </div>
+            )}
 
             {order.notes && (
               <>

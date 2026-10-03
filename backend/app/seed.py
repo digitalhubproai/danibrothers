@@ -9,7 +9,7 @@ import json
 import os
 
 from passlib.context import CryptContext
-from sqlalchemy import func, select
+from sqlalchemy import func, inspect, select, text
 
 from .database import Base
 from .deps import SessionLocal, engine
@@ -120,8 +120,31 @@ def pairs(specs: list[tuple[str, str]]) -> str:
     return json.dumps([{"label": label, "value": value} for label, value in specs])
 
 
+# Columns added to a table that already exists. `create_all` only ever creates
+# missing *tables*, so a new column on a live database needs this instead — the
+# project has no migration tool, and this is a single nullable column.
+ADDED_COLUMNS = {
+    "orders": {"payment_proof": "TEXT"},
+}
+
+
+def sync_columns() -> None:
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        for table, columns in ADDED_COLUMNS.items():
+            if table not in existing_tables:
+                continue  # create_all will build it with every column included.
+            present = {c["name"] for c in inspector.get_columns(table)}
+            for name, ddl_type in columns.items():
+                if name not in present:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl_type}"))
+                    print(f"Added {table}.{name}")
+
+
 def seed() -> None:
     Base.metadata.create_all(engine)
+    sync_columns()
 
     with SessionLocal() as db:
         if db.scalar(select(func.count()).select_from(Category)):

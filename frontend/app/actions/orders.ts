@@ -32,6 +32,31 @@ function parseCart(raw: string): CartInput[] {
   }
 }
 
+/**
+ * Stores a bank-transfer receipt and returns its `/uploads/...` path, which the
+ * checkout form then submits inside the hidden `paymentProof` field.
+ *
+ * No session check: the customer picks the file while filling the form, which
+ * is before the order is placed. The path is only a link — the order itself
+ * still requires a valid session.
+ */
+export async function uploadPaymentProofAction(form: FormData): Promise<ActionResult> {
+  const file = form.get("file")
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, message: "Choose a screenshot or photo of the payment first." }
+  }
+
+  try {
+    const body = new FormData()
+    body.append("file", file, file.name)
+    const uploaded = await api.upload<{ url: string }>("/api/orders/payment-proof", body)
+    if (!uploaded?.url) return { ok: false, message: "The upload didn't come back. Try again." }
+    return { ok: true, data: { url: uploaded.url } }
+  } catch (error) {
+    return toActionResult(error)
+  }
+}
+
 export async function placeOrderAction(
   _prev: ActionResult | null,
   form: FormData,
@@ -46,6 +71,9 @@ export async function placeOrderAction(
     return { ok: false, message: "Your cart is empty." }
   }
 
+  const paymentMethod = str(form, "paymentMethod") === "BANK_TRANSFER" ? "BANK_TRANSFER" : "COD"
+  const paymentProof = str(form, "paymentProof")
+
   const payload = {
     cart,
     customerName: str(form, "customerName"),
@@ -54,7 +82,10 @@ export async function placeOrderAction(
     address: str(form, "address"),
     city: str(form, "city"),
     notes: str(form, "notes") || null,
-    paymentMethod: str(form, "paymentMethod") === "BANK_TRANSFER" ? "BANK_TRANSFER" : "COD",
+    paymentMethod,
+    // Only a bank transfer carries a receipt, and only a path the API handed
+    // out is accepted — the backend re-checks the shape either way.
+    paymentProof: paymentMethod === "BANK_TRANSFER" && paymentProof ? paymentProof : null,
   }
 
   let orderId: string

@@ -2,13 +2,14 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..deps import get_db
 from ..models import Order, OrderItem, Product, User
+from ..uploads import save_image
 from ..schemas import OrderIn, OrderOut
 from ..security import get_current_user
 
@@ -54,6 +55,7 @@ def order_to_dict(order: Order) -> dict:
         "city": order.city,
         "notes": order.notes,
         "paymentMethod": order.payment_method,
+        "paymentProof": order.payment_proof,
         "subtotal": float(order.subtotal),
         "shipping": float(order.shipping),
         "total": float(order.total),
@@ -97,6 +99,9 @@ def place_order(
         city=data.city.strip(),
         notes=data.notes,
         payment_method=data.paymentMethod,
+        # A receipt only means anything for a transfer; a COD order that sends
+        # one is ignored rather than stored.
+        payment_proof=data.paymentProof if data.paymentMethod == "BANK_TRANSFER" else None,
         status="PENDING",
         shipping=350,
     )
@@ -132,6 +137,18 @@ def place_order(
     db.commit()
     db.refresh(order, ["items", "user"])
     return OrderOut.model_validate(order_to_dict(order))
+
+
+@router.post("/orders/payment-proof", status_code=201)
+async def upload_payment_proof(file: UploadFile = File(...)) -> dict:
+    """Stores a bank-transfer receipt and returns the path to send with the order.
+
+    Open to signed-out visitors on purpose: the receipt is uploaded while the
+    checkout form is still being filled in, before the order (and its session
+    check) exists. The stored name is server-generated, so a filename from the
+    client never reaches the filesystem.
+    """
+    return await save_image(file)
 
 
 @router.get("/orders/mine")

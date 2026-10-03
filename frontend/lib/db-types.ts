@@ -57,6 +57,8 @@ export type Order = {
   city: string
   notes: string | null
   paymentMethod: string
+  /** `/uploads/...` path of the bank-transfer receipt, when one was attached. */
+  paymentProof: string | null
   subtotal: number
   shipping: number
   total: number

@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .routers import admin, auth, catalog, orders
-from .routers.admin import UPLOAD_DIR
+from .uploads import UPLOAD_DIR
 
 app = FastAPI(title="Dani Brothers API", version="1.0.0")
 

@@ -3,6 +3,10 @@ from typing import Any, Literal
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+# Upload paths the API itself hands out. Anything else in `paymentProof` would
+# be stored and later rendered as a link, so the value is pinned to that shape.
+UPLOAD_PATH_RE = r"^/uploads/[A-Za-z0-9._-]+$"
+
 INQUIRY_TYPES = ("SELL_DEVICE", "GENERAL", "REPAIR", "BULK")
 DEVICE_CONDITIONS = ("WORKING", "MINOR_FAULT", "FAULTY", "UNKNOWN")
 ORDER_STATUSES = ("PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED")
@@ -172,6 +176,9 @@ class OrderIn(BaseModel):
     city: str = Field(min_length=2, max_length=80)
     notes: str | None = Field(default=None, max_length=2000)
     paymentMethod: Literal["COD", "BANK_TRANSFER"] = "COD"
+    # Set only for bank transfers: the `/uploads/...` path of the receipt the
+    # customer attached at checkout.
+    paymentProof: str | None = Field(default=None, max_length=300, pattern=UPLOAD_PATH_RE)
 
 
 class OrderItemOut(BaseModel):
@@ -197,6 +204,7 @@ class OrderOut(BaseModel):
     city: str
     notes: str | None
     paymentMethod: str
+    paymentProof: str | None = None
     subtotal: float
     shipping: float
     total: float

@@ -19,7 +19,15 @@ import { OrderStatusBadge } from "@/components/admin/order-status-badge"
 import { ApiError, api } from "@/lib/api"
 import type { ApiOrder } from "@/lib/api-types"
 import { formatDateTime, formatPrice } from "@/lib/format"
-import { ORDER_STATUS_LABEL, type OrderStatus, site, whatsappLink } from "@/lib/site"
+import {
+  ORDER_STATUS_LABEL,
+  type OrderStatus,
+  bankTransfer,
+  groupDigits,
+  hasBankDetails,
+  site,
+  whatsappLink,
+} from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { Reveal } from "@/components/motion/reveal"
 
@@ -182,8 +190,49 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               <CreditCard className="size-3.5" />
               {order.paymentMethod === "COD"
                 ? "Cash on delivery"
-                : "Bank transfer — details on WhatsApp"}
+                : `Bank transfer — ${bankTransfer.bankName}`}
             </div>
+
+            {order.paymentMethod === "BANK_TRANSFER" && (
+              <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/[0.03] p-4">
+                <p className="text-xs font-bold text-blue-600">
+                  Send {formatPrice(order.total)} to
+                </p>
+                {hasBankDetails() ? (
+                  <dl className="mt-3 flex flex-col gap-1.5 text-xs">
+                    <Detail label="Account title" value={bankTransfer.accountTitle} />
+                    <Detail label="Account number" value={groupDigits(bankTransfer.accountNumber)} />
+                    {bankTransfer.iban && (
+                      <Detail label="IBAN" value={groupDigits(bankTransfer.iban)} />
+                    )}
+                    {bankTransfer.branch && <Detail label="Branch" value={bankTransfer.branch} />}
+                  </dl>
+                ) : (
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                    We&apos;ll send the account number on WhatsApp shortly.
+                  </p>
+                )}
+
+                <div className="mt-3 border-t border-blue-500/15 pt-3 text-xs">
+                  {order.paymentProof ? (
+                    <a
+                      href={order.paymentProof}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 font-semibold text-blue-600 underline-offset-2 hover:underline"
+                    >
+                      <CheckCircle2 className="size-3.5" />
+                      Receipt attached — view it
+                    </a>
+                  ) : (
+                    <p className="leading-relaxed text-muted-foreground/70">
+                      No receipt attached yet — send it on WhatsApp and we&apos;ll match it to this
+                      order.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -278,6 +327,16 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           </Button>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** One line of the bank account, left-aligned label over the value. */
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-muted-foreground/60">{label}</dt>
+      <dd className="font-semibold tnum">{value || "—"}</dd>
     </div>
   )
 }

@@ -1,18 +1,22 @@
 "use client"
 
-import { useActionState, useMemo, type ComponentProps } from "react"
+import { useActionState, useMemo, useRef, useState, type ComponentProps } from "react"
 import Link from "next/link"
 import {
   AlertCircle,
+  Check,
+  Copy,
   Loader2,
   Lock,
   ShoppingBag,
   MapPin,
   CreditCard,
   FileText,
+  ImageUp,
   MessageCircle,
   Banknote,
   ArrowRight,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,13 +25,22 @@ import { Textarea } from "@/components/ui/textarea"
 import { ProductThumb } from "@/components/product/product-thumb"
 import { useCart, cartSubtotal } from "@/lib/cart"
 import { useCartHydrated } from "@/components/site/use-cart-count"
-import { placeOrderAction } from "@/app/actions/orders"
+import { placeOrderAction, uploadPaymentProofAction } from "@/app/actions/orders"
 import { formatPrice } from "@/lib/format"
-import { site, SHIPPING_FLAT, whatsappLink } from "@/lib/site"
+import {
+  bankTransfer,
+  groupDigits,
+  hasBankDetails,
+  site,
+  SHIPPING_FLAT,
+  whatsappLink,
+} from "@/lib/site"
 import { cn } from "@/lib/utils"
 import type { ActionResult } from "@/lib/validation"
 
 type CheckoutUser = { name: string; email: string; phone: string | null } | null
+
+type PaymentMethod = "COD" | "BANK_TRANSFER"
 
 export function CheckoutForm({ user }: { user: CheckoutUser }) {
   const hydrated = useCartHydrated()
@@ -38,6 +51,18 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
     null,
   )
 
+  // Which radio is ticked. Held in state rather than left to the browser because
+  // the bank details and the receipt box below only make sense for a transfer,
+  // and they have to appear the moment that option is picked.
+  const [method, setMethod] = useState<PaymentMethod>("COD")
+  // The `/uploads/...` path the API handed back for the receipt. This is what
+  // the hidden `paymentProof` field submits with the order.
+  const [proof, setProof] = useState<string | null>(null)
+  const [proofName, setProofName] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const proofInputRef = useRef<HTMLInputElement>(null)
+
   const cartPayload = useMemo(
     () => JSON.stringify(lines.map((l) => ({ productId: l.productId, qty: l.qty }))),
     [lines],
@@ -47,6 +72,42 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
   const shipping = SHIPPING_FLAT
   const total = subtotal + shipping
   const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {}
+
+  async function handleProofPick(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    // Clear first, so picking the same file twice still fires a change event.
+    event.target.value = ""
+    if (!file) return
+
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const body = new FormData()
+      body.append("file", file, file.name)
+      const result = await uploadPaymentProofAction(body)
+      if (!result.ok) {
+        setUploadError(result.message)
+        return
+      }
+      const url = result.data?.url
+      if (!url) {
+        setUploadError("The upload didn't come back. Try again.")
+        return
+      }
+      setProof(url)
+      setProofName(file.name)
+    } catch {
+      setUploadError("Upload failed. Please try again.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function clearProof() {
+    setProof(null)
+    setProofName(null)
+    setUploadError(null)
+  }
 
   if (!hydrated) {
     return (
@@ -89,6 +150,22 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
   return (
     <form action={formAction} className="grid gap-8 lg:grid-cols-[1fr_24rem] lg:gap-12" noValidate>
       <input type="hidden" name="cart" value={cartPayload} />
+      {/* Only ever set to a path the API returned in this session — the order
+          page renders it as a link, so nothing else may reach it. */}
+      {method === "BANK_TRANSFER" && proof && (
+        <input type="hidden" name="paymentProof" value={proof} />
+      )}
+      {/* Unnamed, so it never rides along with the order — the file goes to the
+          API on its own and only the returned path is submitted. */}
+      <input
+        ref={proofInputRef}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={handleProofPick}
+      />
 
       <div className="flex flex-col gap-5">
         {/* Error */}
@@ -180,7 +257,8 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
             <div className="mt-5 flex flex-col gap-3">
               <PaymentOption
                 value="COD"
-                defaultChecked
+                checked={method === "COD"}
+                onSelect={() => setMethod("COD")}
                 title="Cash on delivery"
                 body="Pay the courier when the parcel arrives. Available nationwide."
                 icon={<Banknote className="size-4" />}
@@ -189,12 +267,28 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
               />
               <PaymentOption
                 value="BANK_TRANSFER"
+                checked={method === "BANK_TRANSFER"}
+                onSelect={() => setMethod("BANK_TRANSFER")}
                 title="Bank transfer"
-                body="We'll send account details on WhatsApp once the order is confirmed."
+                body={
+                  hasBankDetails()
+                    ? `Send ${formatPrice(total)} to the ${bankTransfer.bankName} account below, then attach the receipt.`
+                    : `Send the amount, then attach the receipt. We'll confirm the ${bankTransfer.bankName} account on WhatsApp.`
+                }
                 icon={<CreditCard className="size-4" />}
                 color="text-blue-500"
                 bg="bg-blue-500/10"
-              />
+              >
+                <BankTransferPanel
+                  amount={total}
+                  proof={proof}
+                  proofName={proofName}
+                  uploading={uploading}
+                  error={uploadError}
+                  onPick={() => proofInputRef.current?.click()}
+                  onClear={clearProof}
+                />
+              </PaymentOption>
             </div>
           </div>
         </section>
@@ -295,8 +389,9 @@ export function CheckoutForm({ user }: { user: CheckoutUser }) {
             {/* Reassurance */}
             <div className="mt-4 space-y-2">
               <p className="text-center text-xs leading-relaxed text-muted-foreground/60">
-                No advance payment. We confirm every order by phone before it ships — usually within a
-                few hours during {site.hours}.
+                {method === "BANK_TRANSFER"
+                  ? `Transfer the amount and attach the receipt. We confirm every payment before it ships — usually within a few hours during ${site.hours}.`
+                  : `No advance payment. We confirm every order by phone before it ships — usually within a few hours during ${site.hours}.`}
               </p>
               <a
                 href={whatsappLink("Hi Dani Brothers, I have a question about my order.")}
@@ -357,35 +452,208 @@ function PaymentOption({
   value,
   title,
   body,
-  defaultChecked,
+  checked,
+  onSelect,
   icon,
   color,
   bg,
+  children,
 }: {
   value: string
   title: string
   body: string
-  defaultChecked?: boolean
+  checked: boolean
+  onSelect: () => void
   icon: React.ReactNode
   color: string
   bg: string
+  /** Extra fields shown under the copy — only while this option is selected. */
+  children?: React.ReactNode
 }) {
   return (
-    <label className="group flex cursor-pointer gap-4 rounded-xl border border-border/50 p-4 transition-all duration-300 hover:border-border has-checked:border-brand/30 has-checked:bg-brand/[0.02] has-checked:shadow-sm">
+    <label
+      className={cn(
+        "group flex cursor-pointer gap-4 rounded-xl border p-4 transition-all duration-300",
+        checked ? "border-brand/30 bg-brand/[0.02] shadow-sm" : "border-border/50 hover:border-border",
+      )}
+    >
       <input
         type="radio"
         name="paymentMethod"
         value={value}
-        defaultChecked={defaultChecked}
+        checked={checked}
+        onChange={onSelect}
         className="mt-0.5 size-4 shrink-0 accent-[var(--brand)]"
       />
-      <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${bg} ${color} transition-transform duration-300 group-hover:scale-105`}>
-        {icon}
-      </span>
-      <span>
-        <span className="block text-sm font-semibold">{title}</span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground/70">{body}</span>
+      <span className="min-w-0 flex-1">
+        <span className="flex gap-4">
+          <span
+            className={cn(
+              "grid size-9 shrink-0 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-105",
+              bg,
+              color,
+            )}
+          >
+            {icon}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold">{title}</span>
+            <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground/70">{body}</span>
+          </span>
+        </span>
+        {checked && children}
       </span>
     </label>
+  )
+}
+
+/**
+ * The details a bank-transfer customer needs before they pay: where to send the
+ * money, and a slot to attach the receipt.
+ *
+ * Until the shop fills `bankTransfer` in, the account block is replaced by the
+ * WhatsApp fallback rather than an empty table — an account number is the one
+ * thing on this page that must never be guessed at.
+ */
+function BankTransferPanel({
+  amount,
+  proof,
+  proofName,
+  uploading,
+  error,
+  onPick,
+  onClear,
+}: {
+  amount: number
+  proof: string | null
+  proofName: string | null
+  uploading: boolean
+  error: string | null
+  onPick: () => void
+  onClear: () => void
+}) {
+  const ready = hasBankDetails()
+
+  return (
+    <span className="mt-4 block rounded-xl border border-border/50 bg-background/40 p-4">
+      {ready ? (
+        <>
+          <span className="block text-[0.7rem] font-semibold tracking-wide text-muted-foreground/70 uppercase">
+            {bankTransfer.bankName} — send {formatPrice(amount)}
+          </span>
+          <span className="mt-3 flex flex-col gap-2.5">
+            <CopyRow label="Account title" value={bankTransfer.accountTitle} />
+            <CopyRow
+              label="Account number"
+              value={groupDigits(bankTransfer.accountNumber)}
+              raw={bankTransfer.accountNumber}
+            />
+            {bankTransfer.iban && (
+              <CopyRow label="IBAN" value={groupDigits(bankTransfer.iban)} raw={bankTransfer.iban} />
+            )}
+            {bankTransfer.branch && <CopyRow label="Branch" value={bankTransfer.branch} />}
+          </span>
+        </>
+      ) : (
+        <span className="block text-xs leading-relaxed text-muted-foreground/80">
+          Pick this option and we&apos;ll send the {bankTransfer.bankName} account number on WhatsApp
+          within a few minutes, so you can transfer the exact amount and attach the receipt below.
+        </span>
+      )}
+
+      {/* Receipt */}
+      <span className="mt-4 block border-t border-border/50 pt-4">
+        <span className="block text-[0.7rem] font-semibold tracking-wide text-muted-foreground/70 uppercase">
+          Payment receipt
+        </span>
+
+        {proof ? (
+          <span className="mt-2 flex items-center gap-3 rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2.5">
+            <Check className="size-4 shrink-0 text-emerald-500" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold text-emerald-600">Receipt attached</span>
+              <a
+                href={proof}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block truncate text-[0.7rem] text-muted-foreground/70 underline-offset-2 hover:underline"
+              >
+                {proofName ?? "View the file"}
+              </a>
+            </span>
+            <button
+              type="button"
+              onClick={onClear}
+              aria-label="Remove the attached receipt"
+              className="grid size-7 shrink-0 place-items-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          </span>
+        ) : (
+          <span className="mt-2 flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={onPick}
+              className="rounded-xl border-border/50"
+            >
+              {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <ImageUp className="size-3.5" />}
+              {uploading ? "Uploading..." : "Attach receipt"}
+            </Button>
+            <span className="text-[0.7rem] leading-relaxed text-muted-foreground/60">
+              A screenshot or photo of the transfer. Optional now — you can also send it on WhatsApp.
+            </span>
+          </span>
+        )}
+
+        {error && (
+          <span className="mt-2 flex items-center gap-1.5 text-xs font-medium text-red-500">
+            <AlertCircle className="size-3" />
+            {error}
+          </span>
+        )}
+
+        <span className="mt-3 block text-[0.7rem] leading-relaxed text-muted-foreground/60">
+          We confirm the transfer before dispatch, so parcels usually leave once the payment shows in
+          the account.
+        </span>
+      </span>
+    </span>
+  )
+}
+
+/** One line of account details, with a tap-to-copy button. */
+function CopyRow({ label, value, raw }: { label: string; value: string; raw?: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(raw ?? value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard blocked (insecure origin, denied permission) — the value is
+      // on screen and selectable, so there is nothing to recover from.
+    }
+  }
+
+  return (
+    <span className="flex items-baseline justify-between gap-3">
+      <span className="text-[0.7rem] text-muted-foreground/60">{label}</span>
+      <span className="flex min-w-0 items-baseline gap-1.5">
+        <span className="truncate text-xs font-semibold tnum">{value || "—"}</span>
+        <button
+          type="button"
+          onClick={copy}
+          aria-label={`Copy ${label}`}
+          className="shrink-0 text-muted-foreground/50 transition-colors hover:text-foreground"
+        >
+          {copied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
+        </button>
+      </span>
+    </span>
   )
 }

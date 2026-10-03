@@ -65,3 +65,31 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
 
 /** Flat delivery fee on every order — no free-delivery threshold. */
 export const SHIPPING_FLAT = 350
+
+/**
+ * Where bank-transfer customers send the money.
+ *
+ * `accountTitle`, `accountNumber` and `iban` ship empty on purpose: until the
+ * shop confirms them, checkout shows "we'll send the details on WhatsApp"
+ * rather than an account the customer could pay into by mistake. Fill them in
+ * as plain strings and every surface (checkout, the order receipt, the admin
+ * order page) picks them up — nothing else needs touching.
+ */
+export const bankTransfer = {
+  bankName: "Meezan Bank",
+  accountTitle: "",
+  accountNumber: "",
+  iban: "",
+  branch: "",
+}
+
+/** True once the account above has been filled in. */
+export function hasBankDetails(): boolean {
+  return bankTransfer.accountNumber.trim() !== "" || bankTransfer.iban.trim() !== ""
+}
+
+/** `2020 1010 1234 5678` — groups a long account number so it's readable. */
+export function groupDigits(value: string, size = 4): string {
+  const clean = value.replace(/\s+/g, "")
+  return clean.replace(new RegExp(`(.{${size}})`, "g"), "$1 ").trim()
+}
